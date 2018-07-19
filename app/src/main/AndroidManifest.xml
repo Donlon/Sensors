@@ -16,8 +16,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".SensorDetailsActivity">
-            <intent-filter>
-            </intent-filter>
         </activity>
     </application>
 

@@ -28,10 +28,10 @@ public class SensorUtils {
       case Sensor.TYPE_TEMPERATURE:
         return "温度传感器(Temperature)";
       default:
-        return "未知传感器(Unknow)";
+        return "未知传感器(Unknown)";
     }
   }
-  public static String praseData(int type, float[] value){
+  public static String parseData(int type, float[] value){
 
     switch (type) {
       case Sensor.TYPE_ACCELEROMETER:

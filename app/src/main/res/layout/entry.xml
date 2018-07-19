@@ -21,7 +21,8 @@
         android:layout_marginLeft="20dp"
         android:text="设备名称:xxx
 设备版本:xxx
-供应商:xxx" />
+供应商:xxx"
+        android:textColor="@android:color/background_dark"/>
 
     <TextView
         android:id="@+id/textViewSensorData"

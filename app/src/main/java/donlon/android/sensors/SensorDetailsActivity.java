@@ -35,9 +35,9 @@ public class SensorDetailsActivity extends Activity {
     textHead2  = (TextView) findViewById(R.id.SensorDetails_TextHead2);
     textValues = (TextView) findViewById(R.id.SensorDetails_TextValues);
 
-    mySensor=MainActivity.sensorList.get(
+    /*mySensor=MainActivity.sensorList.get(
             Integer.parseInt(getIntent().getStringExtra("SensorID"))
-    ).sensor;
+    ).sensor;*/
 
     textHead.setText(SensorUtils.getSensorNameByType(mySensor.getType()));
     textHead2.setText(mySensor.getName()+"By"+mySensor.getVendor()+", "+mySensor.getVersion());
@@ -55,7 +55,7 @@ public class SensorDetailsActivity extends Activity {
       @Override
       public void onSensorChanged(SensorEvent event) {
         // TODO Auto-generated method stub
-        textValues.setText(SensorUtils.praseData(mySensor.getType(), event.values));
+        textValues.setText(SensorUtils.parseData(mySensor.getType(), event.values));
       }
     }, mySensor, SensorManager.SENSOR_DELAY_NORMAL);
 
