@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:id="@+id/sensordetailsactivityLinearLayout1">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="Sensor name"
+            android:layout_width="wrap_content"
+            android:id="@+id/SensorDetails_TextHead"/>
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="Sensor name 2"
+            android:layout_width="wrap_content"
+            android:layout_alignParentRight="true"
+            android:id="@+id/SensorDetails_TextHead2"/>
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="values"
+            android:layout_width="wrap_content"
+            android:layout_below="@id/SensorDetails_TextHead"
+            android:id="@+id/SensorDetails_TextValues"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="right"
+        android:id="@+id/sensordetailsactivityLinearLayout2">
+
+        <Button
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_width="wrap_content"
+            android:id="@+id/SensorDetails_ButtonBack"
+            android:layout_gravity="left"/>
+
+        <Button
+            android:layout_height="wrap_content"
+            android:text="Recode"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:id="@+id/SensorDetails_ButtonRecode"/>
+
+        <Button
+            android:layout_height="wrap_content"
+            android:text="Pause"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:id="@+id/SensorDetails_ButtonPause"/>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_above="@id/sensordetailsactivityLinearLayout2"
+        android:layout_below="@id/sensordetailsactivityLinearLayout1"
+        android:id="@+id/SensorDetailsActivityChart">
+
+    </RelativeLayout>
+
+</RelativeLayout>
+
