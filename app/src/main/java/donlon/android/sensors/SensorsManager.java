@@ -12,6 +12,9 @@ public class SensorsManager {
   private List<CustomSensor> m_sensorList;
   private SensorManager m_sysSensorManager;
 
+  private int m_previewDelay = 1000;
+//  private int m_previewDelay = SensorManager.SENSOR_DELAY_NORMAL;
+
   public SensorsManager(Context context){
     m_context = context;
     m_sysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -34,8 +37,8 @@ public class SensorsManager {
     for(CustomSensor sensor : m_sensorList){
       sensor.state = SensorStates.Previewing;
 
-      m_sysSensorManager.registerListener(sensor.listener,sensor.getSensor(),
-              SensorManager.SENSOR_DELAY_NORMAL);
+      m_sysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
+              m_previewDelay);
     }
   }
 

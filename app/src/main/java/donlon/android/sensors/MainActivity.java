@@ -14,9 +14,10 @@ import android.hardware.*;
 
 public class MainActivity extends Activity {
   //public static List<CustomSensor> sensorsList;
-  private SensorsManager sensorsManager;
+  public static SensorsManager sensorsManager;
   private ListView sensorsListView;
   private ListAdapter sensorsListAdapter;
+  private Switch updateSwitch;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -34,23 +35,37 @@ public class MainActivity extends Activity {
       }
     });
     Log.d("Sensors_Dev", "GO ON!");
-
     sensorsManager = new SensorsManager(this);
     initializeUi();
   }
 
   private void initializeUi() {
     //	setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-    setContentView(R.layout.activity_main);
+    setContentView(R.layout.main);
     log("Start");
 
     sensorsListAdapter = new SensorsListAdapter(this, sensorsManager.getSensorList());
 
-    sensorsListView = findViewById(R.id.sensorsListView);
+    sensorsListView = findViewById(R.id.lvSensors);
     sensorsListView.setOnItemClickListener(listViewClickListener);
     sensorsListView.setAdapter(sensorsListAdapter);
+    sensorsListView.requestLayout();
     sensorsManager.startSensorsPreview();
+
+    updateSwitch = findViewById(R.id.swUpdate);
+    updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
   }
+
+  private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+      if(isChecked){
+        sensorsManager.startSensorsPreview();
+      }else{
+        sensorsManager.stopSensorsPreview();
+      }
+    }
+  };
 
   private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
     @Override

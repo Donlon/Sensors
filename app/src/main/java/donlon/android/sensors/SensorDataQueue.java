@@ -9,6 +9,7 @@ public class SensorDataQueue {
   public void push(long timestamp, float[] values, int accuracy){
 
   }
+
   public void push(long timestamp, float[] values){
 
   }

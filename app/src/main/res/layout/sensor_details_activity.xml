@@ -16,21 +16,21 @@
             android:layout_height="wrap_content"
             android:text="Sensor name"
             android:layout_width="wrap_content"
-            android:id="@+id/SensorDetails_TextHead"/>
+            android:id="@+id/tvHead"/>
 
         <TextView
             android:layout_height="wrap_content"
             android:text="Sensor name 2"
             android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
-            android:id="@+id/SensorDetails_TextHead2"/>
+            android:id="@+id/tvHead2"/>
 
         <TextView
             android:layout_height="wrap_content"
             android:text="values"
             android:layout_width="wrap_content"
-            android:layout_below="@id/SensorDetails_TextHead"
-            android:id="@+id/SensorDetails_TextValues"/>
+            android:layout_below="@id/tvHead"
+            android:id="@+id/tvValues"/>
 
     </RelativeLayout>
 
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:text="Back"
             android:layout_width="wrap_content"
-            android:id="@+id/SensorDetails_ButtonBack"
+            android:id="@+id/btnBack"
             android:layout_gravity="left"/>
 
         <Button
@@ -55,14 +55,14 @@
             android:text="Recode"
             android:layout_width="wrap_content"
             android:layout_marginLeft="15dp"
-            android:id="@+id/SensorDetails_ButtonRecode"/>
+            android:id="@+id/bthRecode"/>
 
         <Button
             android:layout_height="wrap_content"
             android:text="Pause"
             android:layout_width="wrap_content"
             android:layout_marginLeft="15dp"
-            android:id="@+id/SensorDetails_ButtonPause"/>
+            android:id="@+id/butnPause"/>
 
     </LinearLayout>
 

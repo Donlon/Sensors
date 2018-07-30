@@ -31,6 +31,7 @@ public class SensorUtils {
         return "未知传感器(Unknown)";
     }
   }
+
   public static String parseData(int type, float[] value){
 
     switch (type) {
@@ -72,4 +73,60 @@ public class SensorUtils {
     }
   }
 
+  public static String getDataUnit(int type){
+    switch (type) {
+      case Sensor.TYPE_ACCELEROMETER:
+        return  "m/s2";
+      case Sensor.TYPE_GRAVITY:
+        return "m/s2";
+      case Sensor.TYPE_GYROSCOPE:
+        return "rad/s";
+      case Sensor.TYPE_LINEAR_ACCELERATION:
+        return "m/s2";
+      case Sensor.TYPE_ROTATION_VECTOR:
+        return "";
+      case Sensor.TYPE_MAGNETIC_FIELD:
+        return "μT";
+      case Sensor.TYPE_ORIENTATION:
+        return "Degrees";
+      case Sensor.TYPE_PROXIMITY:
+        return "cm";
+      case Sensor.TYPE_AMBIENT_TEMPERATURE:
+        return "°C";
+      case Sensor.TYPE_LIGHT:
+        return "lx";
+      case Sensor.TYPE_PRESSURE:
+        return "hPa|mbar";
+      case Sensor.TYPE_RELATIVE_HUMIDITY:
+        return "%";
+      case Sensor.TYPE_TEMPERATURE:
+        return "°C";
+      default:
+        return "Unknown";
+    }
+  }
+
+  public static int getSensorDataDimension(int type) {
+    switch (type) {
+      case Sensor.TYPE_ACCELEROMETER:
+      case Sensor.TYPE_GRAVITY:
+      case Sensor.TYPE_GYROSCOPE:
+      case Sensor.TYPE_LINEAR_ACCELERATION:
+        return 3;
+      case Sensor.TYPE_ROTATION_VECTOR:
+        return 4;
+      case Sensor.TYPE_MAGNETIC_FIELD:
+      case Sensor.TYPE_ORIENTATION:
+        return 3;
+      case Sensor.TYPE_PROXIMITY:
+      case Sensor.TYPE_AMBIENT_TEMPERATURE:
+      case Sensor.TYPE_LIGHT:
+      case Sensor.TYPE_PRESSURE:
+      case Sensor.TYPE_RELATIVE_HUMIDITY:
+      case Sensor.TYPE_TEMPERATURE:
+        return 1;
+      default:
+        return 1;
+    }
+  }
 }
