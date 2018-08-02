@@ -5,21 +5,28 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SensorsListAdapter extends BaseAdapter {
-  Context m_context;
-  List<CustomSensor> m_sensorList;
-  List<TextView> m_dataTextViewsList;
-  List<View> m_listEntitiesList;
+public class SensorsListAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener {
+  private Context m_context;
+  private List<CustomSensor> m_sensorList;
+  private List<TextView> m_dataTextViewsList;
+  private List<SensorListWidgets> m_listEntitiesList;
+  private ListView m_correlatedView;
 
-  public SensorsListAdapter(Context context, List<CustomSensor> sensorList) {
+  public SensorsListAdapter(Context context, ListView correlatedView, List<CustomSensor> sensorList) {
     m_context = context;
     m_sensorList = sensorList;
     m_dataTextViewsList = new ArrayList<>();
+    m_correlatedView = correlatedView;
+    initSubViews();
   }
 
 
@@ -46,23 +53,82 @@ public class SensorsListAdapter extends BaseAdapter {
 //      tvData.setText(currentSensor.data);
       return convertView;
     }
-    View view = LayoutInflater.from(m_context).inflate(R.layout.entry, parent, false);
-    CustomSensor currentSensor = m_sensorList.get(position);
-    TextView tvName = view.findViewById(R.id.textViewSensorName);
-    tvName.setText(currentSensor.sensorName);
 
-    TextView tvInfo = view.findViewById(R.id.textViewSensorInfo);
-    tvInfo.setText(currentSensor.sensorInfo);
+    return m_listEntitiesList.get(position).view;
+  }
 
-    TextView tvData = view.findViewById(R.id.textViewSensorData);
-    currentSensor.tvData = tvData;
-    tvData.setText(currentSensor.data);
+  private void initSubViews(){
+    m_listEntitiesList = new ArrayList<>();
+    for(CustomSensor sensor : m_sensorList){
+      SensorListWidgets entity = new SensorListWidgets();
+      entity.view = LayoutInflater.from(m_context).inflate(
+              R.layout.entry, m_correlatedView, false);
+      entity.tvName = entity.view.findViewById(R.id.tvSensorName);
+      entity.tvInfo = entity.view.findViewById(R.id.tvSensorInfo);
+      entity.tvData = entity.view.findViewById(R.id.tvSensorData);
+      entity.tvUnit = entity.view.findViewById(R.id.tvSensorDataUnit);
+      entity.layoutRight = entity.view.findViewById(R.id.layoutRight);
+      entity.cbxSelected = entity.view.findViewById(R.id.cbxSelected);
 
-    return view;
+//      entity.tvInfo.setText(sensor.sensorInfo);
+      entity.tvName.setText(SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
+      entity.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
+//      tvData.setText(sensor.data);
+      entity.cbxSelected.setOnCheckedChangeListener(this);
+
+      sensor.correlatedWidgets = entity;
+      m_listEntitiesList.add(entity);
+    }
   }
 
   public void updateItem(int pos, String displayData){
 
   }
 
+  public void disableAllCheckBoxes(){
+    for(SensorListWidgets w : m_listEntitiesList){
+      w.cbxSelected.setEnabled(false);
+    }
+  }
+
+  public void enableAllCheckBoxes(){
+    for(SensorListWidgets w : m_listEntitiesList){
+      w.cbxSelected.setEnabled(true);
+    }
+  }
+
+  OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
+
+  public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener){
+    mOnCbxCheckedListener = listener;
+  }
+
+  @Override
+  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    int pos = 0;
+    for(SensorListWidgets w : m_listEntitiesList){
+      if(w.cbxSelected == buttonView){
+        if(mOnCbxCheckedListener != null){
+          mOnCbxCheckedListener.OnSensorsListCbxChecked(pos, isChecked);
+          break;
+        }
+      }
+      pos++;
+    }
+
+  }
+
+  public interface OnSensorsListCbxCheckedListener {
+    void OnSensorsListCbxChecked(int pos, boolean selected);
+  }
+
+  public class SensorListWidgets{
+    public View view;
+    public TextView tvName;
+    public TextView tvInfo;
+    public TextView tvData;
+    public TextView tvUnit;
+    public CheckBox cbxSelected;
+    public LinearLayout layoutRight;
+  }
 }

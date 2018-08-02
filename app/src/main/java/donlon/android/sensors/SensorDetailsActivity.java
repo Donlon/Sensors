@@ -8,6 +8,8 @@ import android.view.*;
 import android.view.View.OnClickListener;
 import android.hardware.*;
 
+import donlon.android.sensors.utils.LOG;
+
 public class SensorDetailsActivity extends Activity {
   private SensorManager sensorManager;
   private CustomSensor mySensor;
@@ -36,7 +38,7 @@ public class SensorDetailsActivity extends Activity {
 
     int sensorPos = getIntent().getIntExtra("SensorPos", -1);
     if(sensorPos >= MainActivity.sensorsManager.getSensorList().size()){
-      MainActivity.log("sensor pos error.");
+      LOG.d("sensor pos error.");
       finish();
       return;
     }

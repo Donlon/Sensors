@@ -7,7 +7,9 @@ import android.hardware.SensorManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SensorsManager {
+import donlon.android.sensors.utils.LOG;
+
+public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxCheckedListener {
   private Context m_context;
   private List<CustomSensor> m_sensorList;
   private SensorManager m_sysSensorManager;
@@ -36,7 +38,7 @@ public class SensorsManager {
   public void startSensorsPreview(){
     for(CustomSensor sensor : m_sensorList){
       sensor.state = SensorStates.Previewing;
-
+      sensor.listening = true;
       m_sysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
               m_previewDelay);
     }
@@ -45,6 +47,7 @@ public class SensorsManager {
   public void stopSensorsPreview(){
     for(CustomSensor sensor : m_sensorList){
       sensor.state = SensorStates.Resting;
+      sensor.listening = false;
       m_sysSensorManager.unregisterListener(sensor.listener);
     }
   }
@@ -53,4 +56,20 @@ public class SensorsManager {
     return m_sensorList;
   }
 
+  @Override
+  public void OnSensorsListCbxChecked(int pos, boolean selected) {
+    CustomSensor sensor = m_sensorList.get(pos);
+
+    if(sensor.state == SensorStates.Previewing && !selected){
+      m_sysSensorManager.unregisterListener(sensor.listener);
+      sensor.state = SensorStates.Resting;
+    }else if(sensor.state == SensorStates.Resting && selected){
+      m_sysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
+              m_previewDelay);
+      sensor.state = SensorStates.Previewing;
+    }else{
+      LOG.w("Unexpected branch");
+    }
+
+  }
 }

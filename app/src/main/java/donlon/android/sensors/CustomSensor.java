@@ -3,10 +3,8 @@ package donlon.android.sensors;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.widget.TextView;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
+import donlon.android.sensors.utils.LOG;
 
 /*
   String sensorName();
@@ -22,10 +20,12 @@ public class CustomSensor {
 
   public String m_dataUnitSuffix;
 
-  public TextView tvData;
+  public SensorsListAdapter.SensorListWidgets correlatedWidgets;
   public int m_dataDimension;
 
   public SensorStates state = SensorStates.Resting;
+  public boolean listening = false;
+
   private Sensor m_sensor;
   private SensorEvent lastEvent;
   private SensorDataQueue dataQueue;
@@ -39,7 +39,7 @@ public class CustomSensor {
     m_dataUnitSuffix = " " + SensorUtils.getDataUnit(sensor.getType());
 
     sensorName = sensor.getName();
-    MainActivity.log(sensorName);
+    LOG.d(sensorName);
     sensorInfo = "Info";
     data = "data";
   }
@@ -50,17 +50,22 @@ public class CustomSensor {
 //      MainActivity.log(sensorName+": "+event.timestamp);
       switch (state){
         case Previewing:
-          if(tvData != null){
+          if(correlatedWidgets != null){
             if(m_dataDimension == 0){
               return;
             }
-            String str = String.valueOf(event.values[0]);
-            for(int i=1; i < m_dataDimension; i++){
-              str += ", ";
-              str += event.values[i];
+
+            correlatedWidgets.tvData.setText("");
+            for(int i = 0; i < m_dataDimension; i++){
+              correlatedWidgets.tvData.append(String.valueOf(event.values[i]));
+//              correlatedWidgets.tvData.append("         AAAAAA");
+              if(i != m_dataDimension - 1){
+                correlatedWidgets.tvData.append("\n");
+              }
             }
-            str += m_dataUnitSuffix;
-            tvData.setText(str);
+          }else{
+            LOG.w("Unexpected branch");
+            //throw new Exception("Unexpected");
           }
           // Feedback to UI
           break;

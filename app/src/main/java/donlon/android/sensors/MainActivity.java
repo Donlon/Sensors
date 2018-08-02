@@ -1,22 +1,21 @@
 package donlon.android.sensors;
 import java.io.StringWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.app.*;
 import android.content.*;
 import android.os.*;
-import android.util.Log;
+import android.support.v7.app.AlertDialog;
 import android.widget.*;
 import android.view.*;
-import android.hardware.*;
+
+import donlon.android.sensors.utils.LOG;
 
 public class MainActivity extends Activity {
   //public static List<CustomSensor> sensorsList;
   public static SensorsManager sensorsManager;
   private ListView sensorsListView;
-  private ListAdapter sensorsListAdapter;
+  private SensorsListAdapter sensorsListAdapter;
   private Switch updateSwitch;
 
   @Override
@@ -24,36 +23,47 @@ public class MainActivity extends Activity {
     super.onCreate(savedInstanceState);
     Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       @Override
-      public void uncaughtException(Thread thread, Throwable throwable) {
+      public void uncaughtException(final Thread thread, final Throwable throwable) {
         throwable.printStackTrace();
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         throwable.printStackTrace(pw);
         pw.flush();
-        String s = sw.toString();
-        log(s);
+        final String s = sw.toString();
+        LOG.d(s);
+
+        MainActivity.this.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            new AlertDialog.Builder(MainActivity.this)
+                    .setMessage(s)
+                    .setTitle(throwable.getClass().getName())
+                    .show();
+          }
+        });
       }
     });
-    Log.d("Sensors_Dev", "GO ON!");
+    LOG.d( "GO ON!");
     sensorsManager = new SensorsManager(this);
     initializeUi();
+
+    sensorsManager.startSensorsPreview();
   }
 
   private void initializeUi() {
     //	setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     setContentView(R.layout.main);
-    log("Start");
+    LOG.d("Start");
 
-    sensorsListAdapter = new SensorsListAdapter(this, sensorsManager.getSensorList());
-
+    sensorsListAdapter = new SensorsListAdapter(this, sensorsListView, sensorsManager.getSensorList());
+    sensorsListAdapter.setOnCbxCheckedListener(sensorsManager);
     sensorsListView = findViewById(R.id.lvSensors);
     sensorsListView.setOnItemClickListener(listViewClickListener);
     sensorsListView.setAdapter(sensorsListAdapter);
-    sensorsListView.requestLayout();
-    sensorsManager.startSensorsPreview();
-
+//    sensorsListView.requestLayout();
     updateSwitch = findViewById(R.id.swUpdate);
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
+
   }
 
   private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {
@@ -61,8 +71,10 @@ public class MainActivity extends Activity {
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
       if(isChecked){
         sensorsManager.startSensorsPreview();
+        sensorsListAdapter.enableAllCheckBoxes();
       }else{
         sensorsManager.stopSensorsPreview();
+        sensorsListAdapter.disableAllCheckBoxes();
       }
     }
   };
@@ -70,7 +82,8 @@ public class MainActivity extends Activity {
   private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      log("Sensor Event: id=" + id);
+      LOG.d("Sensor item clicked: id=" + id);
+      updateSwitch.setChecked(false);
       startSensorDetailsActivity(position);
     }
   };
@@ -81,9 +94,5 @@ public class MainActivity extends Activity {
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
     intent.putExtra("SensorPos", position);
     startActivity(intent);
-  }
-
-  static void log(String str){
-    Log.i("Sensors_Dev", str);
   }
 }
