@@ -1,8 +1,8 @@
 package donlon.android.sensors;
 
-import android.app.*;
 import android.content.pm.ActivityInfo;
 import android.os.*;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.*;
 import android.view.*;
 import android.view.View.OnClickListener;
@@ -10,7 +10,7 @@ import android.hardware.*;
 
 import donlon.android.sensors.utils.LOG;
 
-public class SensorDetailsActivity extends Activity {
+public class SensorDetailsActivity extends AppCompatActivity   {
   private SensorManager sensorManager;
   private CustomSensor mSensor;
   private Sensor sensorInternal;
@@ -24,7 +24,7 @@ public class SensorDetailsActivity extends Activity {
 
   private void initializeUi(){
     setContentView(R.layout.sensor_details_activity);
-    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+//    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
     textHead   = findViewById(R.id.tvHead);
     textHead2  = findViewById(R.id.tvHead2);
@@ -49,6 +49,13 @@ public class SensorDetailsActivity extends Activity {
         Toast.makeText(getApplicationContext(), "TODO.", Toast.LENGTH_SHORT).show();
       }
     });
+
+
+    android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+    if(actionBar != null){
+      actionBar.setHomeButtonEnabled(true);
+      actionBar.setDisplayHomeAsUpEnabled(true);
+    }
 
     /*btnPause.setOnClickListener(new OnClickListener() {
       @Override
@@ -86,8 +93,7 @@ public class SensorDetailsActivity extends Activity {
     sensorInternal = mSensor.getSensorObject();
 
     textHead.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
-    textHead2.setText(sensorInternal.getName()
-            +" By "+sensorInternal.getVendor()+", "+sensorInternal.getVersion());
+    textHead2.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
 
 //    TextView sensorName = (TextView) findViewById(R.id.textViewSensorName);
 //    sensorName.setText(position + "  "+nameList[position]);
@@ -113,6 +119,45 @@ public class SensorDetailsActivity extends Activity {
     mSensor.state = SensorStates.Previewing;
     mSensor.correlatedDetailsWndWidgets = null;
 
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.menu, menu);
+    return true;
+  }
+
+
+  private boolean mViewingPaused = false;
+  private boolean mRecording = false;
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.menuPause:
+        if(mViewingPaused){
+          item.setTitle(R.string.pause);
+        }else{
+          item.setTitle(R.string.start);
+        }
+        mViewingPaused = !mViewingPaused;
+        break;
+      case R.id.menuRecord:
+        if(mRecording){
+          item.setTitle(R.string.stop_recording);
+        }else{
+          item.setTitle(R.string.record);
+        }
+        mRecording = !mRecording;
+        break;
+      case android.R.id.home:
+        finish(); // back button
+        break;
+      default:
+        break;
+    }
+
+    return super.onOptionsItemSelected(item);
   }
 
   public class SensorDetailsActivityWidgets{

@@ -53,7 +53,7 @@ public class CustomSensor {
     @Override
     public void onSensorChanged(SensorEvent event) {
 //      MainActivity.log(sensorName+": "+event.timestamp);
-      switch (state){
+      switch (state){//TODO: give control to files respectively
         case Previewing:
           if(correlatedPreviewingListWidgets != null){
             if(m_dataDimension == 0){
@@ -63,7 +63,6 @@ public class CustomSensor {
 
             for(int i = 0; i < m_dataDimension; i++){
               mTmpStr.append(String.valueOf(event.values[i]));
-//              correlatedWidgets.tvData.append("         AAAAAA");
               if(i != m_dataDimension - 1){
                 mTmpStr.append("\n");
               }

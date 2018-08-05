@@ -63,7 +63,8 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
       SensorListWidgets entity = new SensorListWidgets();
       entity.view = LayoutInflater.from(m_context).inflate(
               R.layout.entry, m_correlatedView, false);
-      entity.tvName = entity.view.findViewById(R.id.tvSensorName);
+      entity.tvPrimaryName = entity.view.findViewById(R.id.tvSensorPrimaryName);
+      entity.tvSecondaryName = entity.view.findViewById(R.id.tvSensorSecondaryName);
       entity.tvInfo = entity.view.findViewById(R.id.tvSensorInfo);
       entity.tvData = entity.view.findViewById(R.id.tvSensorData);
       entity.tvUnit = entity.view.findViewById(R.id.tvSensorDataUnit);
@@ -71,7 +72,10 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
       entity.cbxEnabled = entity.view.findViewById(R.id.cbxEnabled);
 
 //      entity.tvInfo.setText(sensor.sensorInfo);
-      entity.tvName.setText(SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
+      entity.tvPrimaryName.setText(
+              SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
+      entity.tvSecondaryName.setText(
+              SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType()));
       entity.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
 //      tvData.setText(sensor.data);
       entity.cbxEnabled.setOnCheckedChangeListener(this);
@@ -120,7 +124,8 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
 
   public class SensorListWidgets{
     public View view;
-    public TextView tvName;
+    public TextView tvPrimaryName;
+    public TextView tvSecondaryName;
     public TextView tvInfo;
     public TextView tvData;
     public TextView tvUnit;

@@ -52,16 +52,6 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
     }
   }
 
-  private static int MIN_UPDATE_INTERVAL = 25;
-  private Runnable threadRunnable = new Runnable() {
-    double lastUpdateTime;
-    @Override
-    public void run() {
-
-    }
-  };
-
-
   public List<CustomSensor> getSensorList(){
     return m_sensorList;
   }

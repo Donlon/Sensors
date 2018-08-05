@@ -6,7 +6,7 @@ public class SensorUtils {
   public static String getSensorNameByType(int type){
     switch (type) {
       case Sensor.TYPE_ACCELEROMETER:
-        return "加速度传感器(Accelerometer)";
+        return "加速度传感器";
       case Sensor.TYPE_ALL:
         return "传感器";
       case Sensor.TYPE_AMBIENT_TEMPERATURE:
@@ -16,29 +16,29 @@ public class SensorUtils {
       case Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR:
         return "地磁场旋转传感器";
       case Sensor.TYPE_GRAVITY:
-        return "重力感应器(Gravity)";
+        return "重力感应器";
       case Sensor.TYPE_GYROSCOPE:
-        return "陀螺仪传感器(Gyroscope)";
+        return "陀螺仪传感器";
       case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
         return "未校正的陀螺仪传感器";
       case Sensor.TYPE_LIGHT:
-        return "环境光传感器(Light)";
+        return "环境光传感器";
       case Sensor.TYPE_LINEAR_ACCELERATION:
-        return "线性加速度传感器(Linear Acceleration)";
+        return "线性加速度传感器";
       case Sensor.TYPE_MAGNETIC_FIELD:
-        return "磁场传感器(Magnetic Field)";
+        return "磁场传感器";
       case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
-        return "未校正的磁场传感器(Magnetic Field)";
+        return "未校正的磁场传感器";
       case Sensor.TYPE_ORIENTATION:
-        return "方向传感器(Orientation)";
+        return "方向传感器";
       case Sensor.TYPE_PRESSURE:
-        return "压力传感器(Pressure)";
+        return "压力传感器";
       case Sensor.TYPE_PROXIMITY:
-        return "距离传感器(Proximity)";
+        return "距离传感器";
       case Sensor.TYPE_RELATIVE_HUMIDITY:
         return "相对湿度传感器";
       case Sensor.TYPE_ROTATION_VECTOR:
-        return "翻转传感器(Rotation Vector)";
+        return "翻转传感器";
       case Sensor.TYPE_SIGNIFICANT_MOTION:
         return "运动触发传感器";
       case Sensor.TYPE_STEP_COUNTER:
@@ -46,9 +46,57 @@ public class SensorUtils {
       case Sensor.TYPE_STEP_DETECTOR:
         return "Step Detector Sensor";
       case Sensor.TYPE_TEMPERATURE:
-        return "温度传感器(Temperature)";
+        return "温度传感器";
       default:
         return "未知传感器: " + type;
+    }
+  }
+  public static String getSensorEnglishNameByType(int type){
+    switch (type) {
+      case Sensor.TYPE_ACCELEROMETER:
+        return "Accelerometer";
+      case Sensor.TYPE_ALL:
+        return "All Sensor";
+      case Sensor.TYPE_AMBIENT_TEMPERATURE:
+        return "环境温度传感器";
+      case Sensor.TYPE_GAME_ROTATION_VECTOR:
+        return "未校正的方向传感器";
+      case Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR:
+        return "地磁场旋转传感器";
+      case Sensor.TYPE_GRAVITY:
+        return "Gravity Sensor";
+      case Sensor.TYPE_GYROSCOPE:
+        return "Gyroscope";
+      case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+        return "未校正的陀螺仪传感器";
+      case Sensor.TYPE_LIGHT:
+        return "Light Sensor";
+      case Sensor.TYPE_LINEAR_ACCELERATION:
+        return "Linear Acceleration Sensor";
+      case Sensor.TYPE_MAGNETIC_FIELD:
+        return "Magnetic Field Sensor";
+      case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+        return "Magnetic Field Sensor (Uncalibrated)";
+      case Sensor.TYPE_ORIENTATION:
+        return "Orientation Sensor";
+      case Sensor.TYPE_PRESSURE:
+        return "Pressure Sensor";
+      case Sensor.TYPE_PROXIMITY:
+        return "Proximity Sensor";
+      case Sensor.TYPE_RELATIVE_HUMIDITY:
+        return "Relative Humidity Sensor";
+      case Sensor.TYPE_ROTATION_VECTOR:
+        return "Rotation Vector Sensor";
+      case Sensor.TYPE_SIGNIFICANT_MOTION:
+        return "Significant Motion Sensor";
+      case Sensor.TYPE_STEP_COUNTER:
+        return "Step Counter";
+      case Sensor.TYPE_STEP_DETECTOR:
+        return "Step Detector Sensor";
+      case Sensor.TYPE_TEMPERATURE:
+        return "Temperature Sensor";
+      default:
+        return "Unknown: " + type;
     }
   }
 

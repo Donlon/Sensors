@@ -6,13 +6,13 @@ import android.app.*;
 import android.content.*;
 import android.os.*;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.*;
 import android.view.*;
 
 import donlon.android.sensors.utils.LOG;
 
-public class MainActivity extends Activity {
-  //public static List<CustomSensor> sensorsList;
+public class MainActivity extends AppCompatActivity {
   public static SensorsManager sensorsManager;
   private ListView sensorsListView;
   private SensorsListAdapter sensorsListAdapter;
@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       @Override
       public void uncaughtException(final Thread thread, final Throwable throwable) {
@@ -65,6 +66,20 @@ public class MainActivity extends Activity {
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
   }
 
+  private boolean mCheckBtnLastChecked = true;
+  @Override
+  public void onPause(){
+    mCheckBtnLastChecked = updateSwitch.isChecked();
+    updateSwitch.setChecked(false);
+    super.onPause();
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    updateSwitch.setChecked(mCheckBtnLastChecked);
+  }
+
   private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -81,8 +96,6 @@ public class MainActivity extends Activity {
   private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      LOG.d("Sensor item clicked: id=" + id);
-      updateSwitch.setChecked(false);
       startSensorDetailsActivity(position);
     }
   };
@@ -92,6 +105,7 @@ public class MainActivity extends Activity {
 
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
     intent.putExtra("SensorPos", position);
-    startActivity(intent);
+    startActivityForResult(intent, 404);
   }
+
 }
