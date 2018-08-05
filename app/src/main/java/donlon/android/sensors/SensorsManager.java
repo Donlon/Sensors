@@ -38,7 +38,7 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   public void startSensorsPreview(){
     for(CustomSensor sensor : m_sensorList){
       sensor.state = SensorStates.Previewing;
-      sensor.listening = true;
+      sensor.enabled = true;
       m_sysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
               m_previewDelay);
     }
@@ -47,10 +47,20 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   public void stopSensorsPreview(){
     for(CustomSensor sensor : m_sensorList){
       sensor.state = SensorStates.Resting;
-      sensor.listening = false;
+      sensor.enabled = false;
       m_sysSensorManager.unregisterListener(sensor.listener);
     }
   }
+
+  private static int MIN_UPDATE_INTERVAL = 25;
+  private Runnable threadRunnable = new Runnable() {
+    double lastUpdateTime;
+    @Override
+    public void run() {
+
+    }
+  };
+
 
   public List<CustomSensor> getSensorList(){
     return m_sensorList;
@@ -70,6 +80,5 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
     }else{
       LOG.w("Unexpected branch");
     }
-
   }
 }

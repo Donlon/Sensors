@@ -20,11 +20,14 @@ public class CustomSensor {
 
   public String m_dataUnitSuffix;
 
-  public SensorsListAdapter.SensorListWidgets correlatedWidgets;
+  public SensorsListAdapter.SensorListWidgets correlatedPreviewingListWidgets;
+  public SensorDetailsActivity.SensorDetailsActivityWidgets correlatedDetailsWndWidgets;
+
+
   public int m_dataDimension;
 
   public SensorStates state = SensorStates.Resting;
-  public boolean listening = false;
+  public boolean enabled = false;
 
   private Sensor m_sensor;
   private SensorEvent lastEvent;
@@ -44,33 +47,38 @@ public class CustomSensor {
     data = "data";
   }
 
+  StringBuilder mTmpStr = new StringBuilder();
+
   public SensorEventListener listener = new SensorEventListener() {
     @Override
     public void onSensorChanged(SensorEvent event) {
 //      MainActivity.log(sensorName+": "+event.timestamp);
       switch (state){
         case Previewing:
-          if(correlatedWidgets != null){
+          if(correlatedPreviewingListWidgets != null){
             if(m_dataDimension == 0){
               return;
             }
+            mTmpStr.delete(0, mTmpStr.length());
 
-            correlatedWidgets.tvData.setText("");
             for(int i = 0; i < m_dataDimension; i++){
-              correlatedWidgets.tvData.append(String.valueOf(event.values[i]));
+              mTmpStr.append(String.valueOf(event.values[i]));
 //              correlatedWidgets.tvData.append("         AAAAAA");
               if(i != m_dataDimension - 1){
-                correlatedWidgets.tvData.append("\n");
+                mTmpStr.append("\n");
               }
             }
+            correlatedPreviewingListWidgets.tvData.setText(mTmpStr.toString());
           }else{
             LOG.w("Unexpected branch");
-            //throw new Exception("Unexpected");
           }
           // Feedback to UI
           break;
         case Capturing:
+        case Viewing:
           // Note it down
+
+
           // TODO: invoke with event only
           dataQueue.push(event.timestamp, event.values, event.accuracy);
           break;

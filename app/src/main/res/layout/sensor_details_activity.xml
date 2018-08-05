@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,10 +13,11 @@
         android:id="@+id/sensordetailsactivityLinearLayout1">
 
         <TextView
+            android:id="@+id/tvHead"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sensor name"
-            android:layout_width="wrap_content"
-            android:id="@+id/tvHead"/>
+            android:textSize="18sp"/>
 
         <TextView
             android:layout_height="wrap_content"
@@ -35,45 +36,44 @@
     </RelativeLayout>
 
     <LinearLayout
-        android:layout_height="wrap_content"
+        android:id="@+id/sensordetailsactivityLinearLayout2"
         android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:layout_marginBottom="10dp"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        android:layout_weight="1"
         android:gravity="right"
-        android:id="@+id/sensordetailsactivityLinearLayout2">
+        android:orientation="horizontal">
 
         <Button
-            android:layout_height="wrap_content"
-            android:text="Back"
-            android:layout_width="wrap_content"
             android:id="@+id/btnBack"
-            android:layout_gravity="left"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:text="Back"/>
 
         <Button
-            android:layout_height="wrap_content"
-            android:text="Recode"
+            android:id="@+id/bthRecode"
             android:layout_width="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:id="@+id/bthRecode"/>
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:text="Recode"/>
 
         <Button
-            android:layout_height="wrap_content"
-            android:text="Pause"
+            android:id="@+id/butnPause"
             android:layout_width="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:id="@+id/butnPause"/>
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingRight="30dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:text="Pause"/>
 
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:layout_above="@id/sensordetailsactivityLinearLayout2"
-        android:layout_below="@id/sensordetailsactivityLinearLayout1"
-        android:id="@+id/SensorDetailsActivityChart">
-
-    </RelativeLayout>
-
-</RelativeLayout>
+</LinearLayout>
 

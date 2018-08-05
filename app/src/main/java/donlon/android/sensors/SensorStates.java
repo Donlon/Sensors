@@ -1,7 +1,8 @@
 package donlon.android.sensors;
 
 public enum SensorStates {
+  Previewing,
   Capturing,
-  Resting,
-  Previewing
+  Viewing,
+  Resting
 }

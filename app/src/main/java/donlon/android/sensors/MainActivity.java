@@ -63,7 +63,6 @@ public class MainActivity extends Activity {
 //    sensorsListView.requestLayout();
     updateSwitch = findViewById(R.id.swUpdate);
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
-
   }
 
   private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {

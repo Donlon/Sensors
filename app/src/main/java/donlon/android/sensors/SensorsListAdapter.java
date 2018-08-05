@@ -68,32 +68,28 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
       entity.tvData = entity.view.findViewById(R.id.tvSensorData);
       entity.tvUnit = entity.view.findViewById(R.id.tvSensorDataUnit);
       entity.layoutRight = entity.view.findViewById(R.id.layoutRight);
-      entity.cbxSelected = entity.view.findViewById(R.id.cbxSelected);
+      entity.cbxEnabled = entity.view.findViewById(R.id.cbxEnabled);
 
 //      entity.tvInfo.setText(sensor.sensorInfo);
       entity.tvName.setText(SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
       entity.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
 //      tvData.setText(sensor.data);
-      entity.cbxSelected.setOnCheckedChangeListener(this);
+      entity.cbxEnabled.setOnCheckedChangeListener(this);
 
-      sensor.correlatedWidgets = entity;
+      sensor.correlatedPreviewingListWidgets = entity;
       m_listEntitiesList.add(entity);
     }
   }
 
-  public void updateItem(int pos, String displayData){
-
-  }
-
   public void disableAllCheckBoxes(){
     for(SensorListWidgets w : m_listEntitiesList){
-      w.cbxSelected.setEnabled(false);
+      w.cbxEnabled.setEnabled(false);
     }
   }
 
   public void enableAllCheckBoxes(){
     for(SensorListWidgets w : m_listEntitiesList){
-      w.cbxSelected.setEnabled(true);
+      w.cbxEnabled.setEnabled(true);
     }
   }
 
@@ -107,7 +103,7 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     int pos = 0;
     for(SensorListWidgets w : m_listEntitiesList){
-      if(w.cbxSelected == buttonView){
+      if(w.cbxEnabled == buttonView){
         if(mOnCbxCheckedListener != null){
           mOnCbxCheckedListener.OnSensorsListCbxChecked(pos, isChecked);
           break;
@@ -128,7 +124,7 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
     public TextView tvInfo;
     public TextView tvData;
     public TextView tvUnit;
-    public CheckBox cbxSelected;
+    public CheckBox cbxEnabled;
     public LinearLayout layoutRight;
   }
 }
