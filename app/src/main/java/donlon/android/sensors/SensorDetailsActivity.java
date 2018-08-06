@@ -1,124 +1,139 @@
 package donlon.android.sensors;
 
-import android.content.pm.ActivityInfo;
 import android.os.*;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.*;
 import android.view.*;
-import android.view.View.OnClickListener;
 import android.hardware.*;
 
 import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.views.SensorDataSurfaceView;
 
-public class SensorDetailsActivity extends AppCompatActivity   {
+public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback {
   private SensorManager sensorManager;
   private CustomSensor mSensor;
-  private Sensor sensorInternal;
 
-  private Button btnBack;
-  private Button btnRecode;
-  private Button btnPause;
-  private TextView textHead;
-  private TextView textHead2;
-  private TextView textValues;
+  private TextView tvSensorPrimaryName;
+  private TextView tvSensorSecondaryName;
+  private TextView tvValue_1;
+  private TextView tvValue_2;
+  private TextView tvValue_3;
+
+  android.support.v7.app.ActionBar mActionBar;
 
   private void initializeUi(){
     setContentView(R.layout.sensor_details_activity);
 //    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
-    textHead   = findViewById(R.id.tvHead);
-    textHead2  = findViewById(R.id.tvHead2);
-    textValues = findViewById(R.id.tvValues);
+    tvSensorPrimaryName = findViewById(R.id.tvSensorPrimaryName);
+    tvSensorSecondaryName = findViewById(R.id.tvSensorSecondaryName);
+    tvValue_1 = findViewById(R.id.tvValue_1);
+    tvValue_2 = findViewById(R.id.tvValue_2);
+    tvValue_3 = findViewById(R.id.tvValue_3);
 
-    btnBack   = findViewById(R.id.btnBack);
-    btnRecode = findViewById(R.id.bthRecode);
-    btnPause  = findViewById(R.id.butnPause);
-
-    btnBack.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        finish();
-        mSensor.state = SensorStates.Previewing;
-        Toast.makeText(getApplicationContext(), "TODO.", Toast.LENGTH_SHORT).show();
-      }
-    });
-
-    btnRecode.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Toast.makeText(getApplicationContext(), "TODO.", Toast.LENGTH_SHORT).show();
-      }
-    });
-
-
-    android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-    if(actionBar != null){
-      actionBar.setHomeButtonEnabled(true);
-      actionBar.setDisplayHomeAsUpEnabled(true);
+    mActionBar = getSupportActionBar();
+    if(mActionBar != null){
+      mActionBar.setHomeButtonEnabled(true);
+      mActionBar.setDisplayHomeAsUpEnabled(true);
     }
-
-    /*btnPause.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Toast.makeText(getApplicationContext(), "TODO.", Toast.LENGTH_SHORT).show();
-        if(previewing){
-          btnPause.setText("Continue");
-          previewing = false;
-        }else{
-          btnPause.setText("Pause");
-          previewing = true;
-        }
-      }
-    });*/
   }
 
   private void initializeSensor(){
 
     int sensorPos = getIntent().getIntExtra("SensorPos", -1);
 
-    if(sensorPos >= MainActivity.sensorsManager.getSensorList().size()){
-      LOG.w("Sensor position unexpectedly wrong");
+    if(sensorPos >= MainActivity.mSensorsManager.getSensorList().size()){
+      LOG.w("Sensor position is unexpectedly wrong");
       finish();
       return;
     }
 
-    mSensor = MainActivity.sensorsManager.getSensorList().get(sensorPos);// TODO: fashion singleton
-    mSensor.state = SensorStates.Viewing;
-    mSensor.correlatedDetailsWndWidgets = new SensorDetailsActivityWidgets();
-    mSensor.correlatedDetailsWndWidgets.textHead = textHead;
-    mSensor.correlatedDetailsWndWidgets.textHead2 = textHead2;
-    mSensor.correlatedDetailsWndWidgets.textValues = textValues;
+    mSensor = MainActivity.mSensorsManager.getSensorList().get(sensorPos);// TODO: fashion singleton
+    Sensor sensorInternal = mSensor.getSensorObject();
 
+    tvSensorPrimaryName.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
+    tvSensorSecondaryName.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
 
-    sensorInternal = mSensor.getSensorObject();
+    switch(mSensor.dataDimension){
+      case 1:
+        tvValue_2.setVisibility(View.GONE);
+      case 2:
+        tvValue_3.setVisibility(View.GONE);
+      case 3:
+        break;
+      default:
+        LOG.w("Unexpected data dimension");
+        break;
+    }
+    //TODO: if Landscape...
+    mActionBar.setTitle(sensorInternal.getName());
+  }
 
-    textHead.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
-    textHead2.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
+  private int eventHits = 0;
+  private final Object eventHitsSync = new Object();
+  @Override
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
+    synchronized (eventHitsSync){
+      eventHits++;
+    }
+    tvValue_1.setText(String.valueOf(event.values[0]));
 
-//    TextView sensorName = (TextView) findViewById(R.id.textViewSensorName);
-//    sensorName.setText(position + "  "+nameList[position]);
-//
-//    TextView sensorData = (TextView) findViewById(R.id.sensorData);
-//    sensorData.setText(sensorList.get(position).str+"\n"+sensorList.get(position).lastEvent.timestamp);
-
+    switch(mSensor.dataDimension){
+      case 3:
+        tvValue_3.setText(String.valueOf(event.values[2]));
+      case 2:
+        tvValue_2.setText(String.valueOf(event.values[1]));
+      case 1:
+        tvValue_1.setText(String.valueOf(event.values[0]));
+        break;
+      default:
+        LOG.w("Unexpected data dimension");
+        break;
+    }
   }
 
   //TODO: recycling
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     initializeUi();
     initializeSensor();
+    MainActivity.mSensorsManager.registerCallbackForSensor(mSensor, this);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while(true) {
+          try {
+            Thread.sleep(1000);
+
+            final int v_eventHits = eventHits;
+            runOnUiThread(new Runnable(){
+              @Override
+              public void run() {
+//                Toast.makeText(SensorDetailsActivity.this, "Hits per second: " + v_eventHits, Toast.LENGTH_SHORT)
+//                        .show();
+                mActionBar.setTitle("Hits per second: " + v_eventHits);
+              }
+            });
+
+            synchronized (eventHitsSync){
+              eventHits = 0;
+            }
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            break;
+          }
+        }
+      }
+    }).start();
   }
 
   @Override
   public void onStop() {
     super.onStop();
-
-    mSensor.state = SensorStates.Previewing;
-    mSensor.correlatedDetailsWndWidgets = null;
-
+    MainActivity.mSensorsManager.clearCallbackForSensor(mSensor);
+    mSensor.state = SensorStates.Previewing;//TODO...
   }
 
   @Override
@@ -126,11 +141,15 @@ public class SensorDetailsActivity extends AppCompatActivity   {
     getMenuInflater().inflate(R.menu.menu, menu);
     return true;
   }
-
-
   private boolean mViewingPaused = false;
+
   private boolean mRecording = false;
 
+  /**
+   * Event listener for clicks on title bar.
+   * @param item menu item
+   * @return what should be returned
+   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
@@ -150,19 +169,13 @@ public class SensorDetailsActivity extends AppCompatActivity   {
         }
         mRecording = !mRecording;
         break;
-      case android.R.id.home:
-        finish(); // back button
+      case android.R.id.home: // back button
+        finish();
         break;
       default:
         break;
     }
 
     return super.onOptionsItemSelected(item);
-  }
-
-  public class SensorDetailsActivityWidgets{
-    public TextView textHead;
-    public TextView textHead2;
-    public TextView textValues;
   }
 }

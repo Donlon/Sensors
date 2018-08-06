@@ -2,7 +2,6 @@ package donlon.android.sensors;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 
-import android.app.*;
 import android.content.*;
 import android.os.*;
 import android.support.v7.app.AlertDialog;
@@ -13,9 +12,9 @@ import android.view.*;
 import donlon.android.sensors.utils.LOG;
 
 public class MainActivity extends AppCompatActivity {
-  public static SensorsManager sensorsManager;
+  public static SensorsManager mSensorsManager;
+  private SensorsListAdapter mSensorsListAdapter;
   private ListView sensorsListView;
-  private SensorsListAdapter sensorsListAdapter;
   private Switch updateSwitch;
 
   @Override
@@ -44,55 +43,65 @@ public class MainActivity extends AppCompatActivity {
         });
       }
     });
-    LOG.d( "GO ON!");
-    sensorsManager = new SensorsManager(this);
+    LOG.d( "Here we go!");
+    mSensorsManager = new SensorsManager(this);
     initializeUi();
 
-    sensorsManager.startSensorsPreview();
+    mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
   }
 
   private void initializeUi() {
-    //	setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     setContentView(R.layout.main);
     LOG.d("Start");
 
-    sensorsListAdapter = new SensorsListAdapter(this, sensorsListView, sensorsManager.getSensorList());
-    sensorsListAdapter.setOnCbxCheckedListener(sensorsManager);
+    mSensorsListAdapter = new SensorsListAdapter(this, sensorsListView, mSensorsManager.getSensorList());
+    mSensorsListAdapter.setOnCbxCheckedListener(mSensorsManager);
     sensorsListView = findViewById(R.id.lvSensors);
     sensorsListView.setOnItemClickListener(listViewClickListener);
-    sensorsListView.setAdapter(sensorsListAdapter);
+    sensorsListView.setAdapter(mSensorsListAdapter);
 //    sensorsListView.requestLayout();
     updateSwitch = findViewById(R.id.swUpdate);
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
   }
 
+
+  /**
+   * Noting for the last state of "Keep Updating" btn.
+   */
   private boolean mCheckBtnLastChecked = true;
+
   @Override
   public void onPause(){
+    super.onPause();
     mCheckBtnLastChecked = updateSwitch.isChecked();
     updateSwitch.setChecked(false);
-    super.onPause();
   }
 
   @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    super.onActivityResult(requestCode, resultCode, data);
+  public void onResume(){
+    super.onResume();
     updateSwitch.setChecked(mCheckBtnLastChecked);
   }
 
+  /**
+   * Listener
+   */
   private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
       if(isChecked){
-        sensorsManager.startSensorsPreview();
-        sensorsListAdapter.enableAllCheckBoxes();
+        mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
+        mSensorsListAdapter.enableAllCheckBoxes();
       }else{
-        sensorsManager.stopSensorsPreview();
-        sensorsListAdapter.disableAllCheckBoxes();
+        mSensorsManager.clearCallbacksForAllSensors();
+        mSensorsListAdapter.disableAllCheckBoxes();
       }
     }
   };
 
+  /**
+   * Listener
+   */
   private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -101,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
   };
 
   private void startSensorDetailsActivity(int position) {
-    sensorsManager.stopSensorsPreview();
-
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
     intent.putExtra("SensorPos", position);
     startActivityForResult(intent, 404);
