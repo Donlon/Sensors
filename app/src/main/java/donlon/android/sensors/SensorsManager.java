@@ -18,7 +18,7 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   private List<CustomSensor> m_sensorList;
   private SensorManager m_sysSensorManager;
 
-  private int m_previewDelay = 1000;
+  private int m_previewDelay = SensorManager.SENSOR_DELAY_FASTEST;
 //  private int m_previewDelay = SensorManager.SENSOR_DELAY_NORMAL;
 
   public SensorsManager(Context context){

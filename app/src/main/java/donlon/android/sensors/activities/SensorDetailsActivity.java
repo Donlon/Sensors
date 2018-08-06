@@ -1,4 +1,4 @@
-package donlon.android.sensors;
+package donlon.android.sensors.activities;
 
 import android.os.*;
 import android.support.v7.app.AppCompatActivity;
@@ -6,8 +6,11 @@ import android.widget.*;
 import android.view.*;
 import android.hardware.*;
 
+import donlon.android.sensors.CustomSensor;
+import donlon.android.sensors.R;
+import donlon.android.sensors.SensorEventCallback;
+import donlon.android.sensors.utils.SensorUtils;
 import donlon.android.sensors.utils.LOG;
-import donlon.android.sensors.views.SensorDataSurfaceView;
 
 public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback {
   private SensorManager sensorManager;
@@ -132,8 +135,8 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   @Override
   public void onStop() {
     super.onStop();
-    MainActivity.mSensorsManager.clearCallbackForSensor(mSensor);
-    mSensor.state = SensorStates.Previewing;//TODO...
+    //TODO: solve this problem
+//    MainActivity.mSensorsManager.clearCallbackForSensor(mSensor);
   }
 
   @Override
@@ -175,7 +178,6 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
       default:
         break;
     }
-
     return super.onOptionsItemSelected(item);
   }
 }

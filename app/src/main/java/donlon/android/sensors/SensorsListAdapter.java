@@ -15,6 +15,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import donlon.android.sensors.utils.SensorUtils;
+
 public class SensorsListAdapter extends BaseAdapter
         implements CompoundButton.OnCheckedChangeListener, SensorEventCallback {
   private Context m_context;

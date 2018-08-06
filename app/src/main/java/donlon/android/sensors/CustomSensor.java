@@ -3,6 +3,7 @@ package donlon.android.sensors;
 import android.hardware.Sensor;
 
 import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.SensorUtils;
 
 /*
   String sensorName();
