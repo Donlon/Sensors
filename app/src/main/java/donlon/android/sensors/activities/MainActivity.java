@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity
 //    mCheckBtnLastChecked = savedInstanceState.getBoolean("updating_btn_checked", true);
     LOG.d( "Here we go!");
     mSensorsManager = SensorsManager.create(this);
-    mRecordingManager = RecordingManager.create(this, mSensorsManager);
+    mRecordingManager = RecordingManager.create(mSensorsManager);
     initializeUi();
 
     mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
