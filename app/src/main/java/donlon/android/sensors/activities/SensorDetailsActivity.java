@@ -50,7 +50,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     int sensorPos = getIntent().getIntExtra("SensorPos", -1);
     sensorManager = SensorsManager.getInstance();
     if(sensorPos >= sensorManager.getSensorList().size()){
-      LOG.w("Sensor position is unexpectedly wrong");
+      LOG.printStack("Sensor position is unexpectedly wrong");
       finish();
       return;
     }
@@ -69,7 +69,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
       case 3:
         break;
       default:
-        LOG.w("Unexpected data dimension");
+        LOG.printStack("Unexpected data dimension");
         break;
     }
     //TODO: if Landscape...
@@ -94,7 +94,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
         tvValue_1.setText(String.valueOf(event.values[0]));
         break;
       default:
-        LOG.w("Unexpected data dimension");
+        LOG.printStack("Unexpected data dimension");
         break;
     }
   }
@@ -139,7 +139,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu, menu);
+    getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
     return true;
   }
   private boolean mViewingPaused = true;

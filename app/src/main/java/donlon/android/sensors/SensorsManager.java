@@ -58,7 +58,7 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
 
   public static /*synchronized */SensorsManager getInstance(){
     if (null==singleTonInstance){
-      LOG.w("");
+      LOG.printStack("");
     }
     return singleTonInstance;
   }
@@ -137,7 +137,7 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
               mPreviewDelay);
       sensor.state = SensorStates.Previewing;
     }else{
-      LOG.w("Unexpected branch");
+      LOG.printStack("Unexpected branch");
     }*/
   }
 }

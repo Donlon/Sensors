@@ -22,7 +22,8 @@
     <string name="data_unit_relative_humidity">%</string>
 
     <string name="recording_starter_title">Select Sensors to Record</string>
-    <string name="btn_positive">确定</string>
-    <string name="btn_cancel">取消</string>
+    <string name="btn_positive">OK</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="set_storage_path">Set Storage Folder</string>
 
 </resources>

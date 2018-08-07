@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/set_storage_folder"
+        android:title="@string/set_storage_path"/>
+    <item
+        android:id="@+id/set_delay"
+        android:title="Set Recording Delay"/>
+</menu>

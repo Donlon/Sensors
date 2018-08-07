@@ -15,6 +15,14 @@ public class LOG {
   }
 
   public static void w(String s){
+    android.util.Log.w(LOG_TAG, s);
+  }
+
+  public static void i(String s){
+    android.util.Log.i(LOG_TAG, s);
+  }
+
+  public static void printStack(String s){
     try{
       throw new CurrentStack(s);
     }catch (Exception e){

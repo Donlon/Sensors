@@ -26,7 +26,7 @@ public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.
 
   public SensorDataSurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
-    LOG.w("Abnormal");
+    LOG.printStack("Abnormal");
 
     initView();
   }
