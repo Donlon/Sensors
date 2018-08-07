@@ -17,14 +17,18 @@ import donlon.android.sensors.SensorsListAdapter;
 import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.LOG;
 
-public class MainActivity extends AppCompatActivity {
-  public static SensorsManager mSensorsManager;
+public class MainActivity extends AppCompatActivity
+        implements RecordingManager.OnRecordingFinishedListener {
+
+  private SharedPreferences sharedPreferences;
+  public SensorsManager mSensorsManager;
   private SensorsListAdapter mSensorsListAdapter;
   private RecordingManager mRecordingManager;
 
   private ListView sensorsListView;
   private Switch updateSwitch;
   private FloatingActionButton fabMain;
+  private boolean mIsOpeningRecordingActivity;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -52,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
+
 //    mCheckBtnLastChecked = savedInstanceState.getBoolean("updating_btn_checked", true);
     LOG.d( "Here we go!");
-    mSensorsManager = new SensorsManager(this);
-    mRecordingManager = new RecordingManager(this, mSensorsManager);
+    mSensorsManager = SensorsManager.create(this);
+    mRecordingManager = RecordingManager.create(this, mSensorsManager);
     initializeUi();
 
     mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
@@ -77,9 +83,12 @@ public class MainActivity extends AppCompatActivity {
     fabMain.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        mRecordingManager.showStarterDialog();
+        saveUpdateSwitchState();
+        mIsOpeningRecordingActivity = true;
+        mRecordingManager.showStarterDialog(MainActivity.this);
       }
     });
+    mRecordingManager.setOnRecordingFinishedListener(this);
 
   }
 
@@ -101,19 +110,45 @@ public class MainActivity extends AppCompatActivity {
   /**
    * Noting for the last state of "Keep Updating" btn.
    */
+  @Deprecated
   private boolean mCheckBtnLastChecked = true;
 
   @Override
   public void onPause(){
     super.onPause();
-    mCheckBtnLastChecked = updateSwitch.isChecked();
-    updateSwitch.setChecked(false);
+    saveUpdateSwitchState();
   }
 
   @Override
   public void onResume(){
     super.onResume();
-    updateSwitch.setChecked(mCheckBtnLastChecked);
+    mIsOpeningRecordingActivity = false;
+    rollbackUpdateSwitchState();
+  }
+
+  @Override
+  public void overridePendingTransition(int enterAnim, int exitAnim) {
+    super.overridePendingTransition(enterAnim, 0);
+  }
+
+  private void saveUpdateSwitchState(){
+    if(mIsOpeningRecordingActivity){
+      return;
+    }
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putBoolean("updating_btn_checked", updateSwitch.isChecked());
+    editor.apply();
+    updateSwitch.setChecked(false);
+  }
+
+  private void rollbackUpdateSwitchState(){
+    updateSwitch.setChecked(
+            sharedPreferences.getBoolean("updating_btn_checked", true));
+  }
+
+  @Override
+  public void onRecordingFinished(boolean succeed) {
+    rollbackUpdateSwitchState();
   }
 
   /**
@@ -145,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
   private void startSensorDetailsActivity(int position) {
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
     intent.putExtra("SensorPos", position);
-    startActivityForResult(intent, 404);
+    startActivity(intent);
   }
-
 }

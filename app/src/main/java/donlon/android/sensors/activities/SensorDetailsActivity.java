@@ -1,19 +1,23 @@
 package donlon.android.sensors.activities;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.os.*;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.*;
 import android.view.*;
-import android.hardware.*;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
+import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorEventCallback;
+import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.SensorUtils;
 import donlon.android.sensors.utils.LOG;
 
-public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback {
-  private SensorManager sensorManager;
+public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingFinishedListener {
+  private SensorsManager sensorManager;
+  private RecordingManager recordingManager;
   private CustomSensor mSensor;
 
   private TextView tvSensorPrimaryName;
@@ -44,14 +48,14 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   private void initializeSensor(){
 
     int sensorPos = getIntent().getIntExtra("SensorPos", -1);
-
-    if(sensorPos >= MainActivity.mSensorsManager.getSensorList().size()){
+    sensorManager = SensorsManager.getInstance();
+    if(sensorPos >= sensorManager.getSensorList().size()){
       LOG.w("Sensor position is unexpectedly wrong");
       finish();
       return;
     }
 
-    mSensor = MainActivity.mSensorsManager.getSensorList().get(sensorPos);// TODO: fashion singleton
+    mSensor = sensorManager.getSensorList().get(sensorPos);// TODO: fashion singleton
     Sensor sensorInternal = mSensor.getSensorObject();
 
     tvSensorPrimaryName.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
@@ -101,7 +105,8 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     super.onCreate(savedInstanceState);
     initializeUi();
     initializeSensor();
-    MainActivity.mSensorsManager.registerCallbackForSensor(mSensor, this);
+    sensorManager.registerCallbackForSensor(mSensor, this);
+    recordingManager = RecordingManager.getInstance();
 
     new Thread(new Runnable() {
       @Override
@@ -133,20 +138,11 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   }
 
   @Override
-  public void onStop() {
-    super.onStop();
-    //TODO: solve this problem
-//    MainActivity.mSensorsManager.clearCallbackForSensor(mSensor);
-  }
-
-  @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.menu, menu);
     return true;
   }
-  private boolean mViewingPaused = false;
-
-  private boolean mRecording = false;
+  private boolean mViewingPaused = true;
 
   /**
    * Event listener for clicks on title bar.
@@ -158,26 +154,38 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     switch (item.getItemId()) {
       case R.id.menuPause:
         if(mViewingPaused){
+          resumeViewing();
           item.setTitle(R.string.pause);
         }else{
+          pauseViewing();
           item.setTitle(R.string.start);
         }
-        mViewingPaused = !mViewingPaused;
         break;
       case R.id.menuRecord:
-        if(mRecording){
-          item.setTitle(R.string.stop_recording);
-        }else{
-          item.setTitle(R.string.record);
-        }
-        mRecording = !mRecording;
+        pauseViewing();
+        recordingManager.setOnRecordingFinishedListener(this);
+        recordingManager.showStarterDialog(this);
         break;
       case android.R.id.home: // back button
+        sensorManager.clearCallbackForSensor(mSensor);
         finish();
         break;
       default:
         break;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  private void pauseViewing(){
+    mViewingPaused = true;
+  }
+
+  private void resumeViewing(){
+    mViewingPaused = false;
+  }
+
+  @Override
+  public void onRecordingFinished(boolean succeed) {
+    resumeViewing();
   }
 }

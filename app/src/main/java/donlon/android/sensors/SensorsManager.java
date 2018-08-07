@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,60 +15,79 @@ import java.util.Map;
 import donlon.android.sensors.utils.LOG;
 
 public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxCheckedListener {
-  private Context m_context;
-  private List<CustomSensor> m_sensorList;
-  private SensorManager m_sysSensorManager;
+  private List<CustomSensor> mSensorList;
+  private SensorManager mSysSensorManager;
 
-  private int m_previewDelay = SensorManager.SENSOR_DELAY_FASTEST;
-//  private int m_previewDelay = SensorManager.SENSOR_DELAY_NORMAL;
+  private int mPreviewDelay = SensorManager.SENSOR_DELAY_FASTEST;
+//  private int mPreviewDelay = SensorManager.SENSOR_DELAY_NORMAL;
 
-  public SensorsManager(Context context){
-    m_context = context;
-    m_sysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+  private SensorsManager(Context context){
+    mSysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
     List<Sensor> allSensor;
-    if (m_sysSensorManager != null) {
-      allSensor = m_sysSensorManager.getSensorList(Sensor.TYPE_ALL);
+    if (mSysSensorManager != null) {
+      allSensor = mSysSensorManager.getSensorList(Sensor.TYPE_ALL);
     }else{
       throw new NullPointerException();
     }
 
-    m_sensorList = new ArrayList<>();
+    mSensorList = new ArrayList<>();
     int count = 0;
     for (Sensor s:allSensor) {
       CustomSensor sensor = new CustomSensor(s);
       sensor.id = count;
-      m_sensorList.add(sensor);
+      mSensorList.add(sensor);
       count++;
     }
     mCallbacksSet = new HashMap<>();//TODO: testify the efficiency of ArrayMap
   }
 
+  /**
+   * SingleTon creator
+   * @param context context
+   * @return instance created
+   */
+  public static SensorsManager create(Context context){
+    return singleTonInstance = new SensorsManager(context);
+  }
+
+  /**
+   * SingleTon instance
+   */
+  private static SensorsManager singleTonInstance;
+
+  public static /*synchronized */SensorsManager getInstance(){
+    if (null==singleTonInstance){
+      LOG.w("");
+    }
+    return singleTonInstance;
+  }
+
   private Map<Sensor, CallbackPair> mCallbacksSet;
 
-  public void registerCallbackForSensor(CustomSensor sensor, SensorEventCallback callback){
+  public void registerCallbackForSensor(@NonNull CustomSensor sensor, SensorEventCallback callback){
     if(mCallbacksSet.containsKey(sensor.getSensorObject())){
       mCallbacksSet.get(sensor.getSensorObject()).callback = callback;
     }else{
       mCallbacksSet.put(sensor.getSensorObject(), new CallbackPair(sensor, callback));
-      m_sysSensorManager.registerListener(mSensorListener, sensor.getSensorObject(),
-              m_previewDelay);
+      mSysSensorManager.registerListener(mSensorListener, sensor.getSensorObject(),
+              mPreviewDelay);
     }
   }
 
   public void registerCallbacksForAllSensors(SensorEventCallback callback){
-    for(CustomSensor sensor : m_sensorList){
+    for(CustomSensor sensor : mSensorList){
       registerCallbackForSensor(sensor, callback);
     }
   }
 
   public void clearCallbackForSensor(CustomSensor sensor){
     mCallbacksSet.remove(sensor.getSensorObject());
-    m_sysSensorManager.unregisterListener(mSensorListener, sensor.getSensorObject());
+    mSysSensorManager.unregisterListener(mSensorListener, sensor.getSensorObject());
   }
 
   public void clearCallbacksForAllSensors(){
-    for(CustomSensor sensor : m_sensorList){
+    for(CustomSensor sensor : mSensorList){
       clearCallbackForSensor(sensor);
     }
   }
@@ -78,6 +98,7 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   private SensorEventListener mSensorListener = new SensorEventListener() {
     @Override
     public void onSensorChanged(SensorEvent event) {
+      //callback and listener must are set simultaneously
       CallbackPair p = mCallbacksSet.get(event.sensor);
       p.callback.onSensorChanged(p.sensor, event);
     }
@@ -101,19 +122,19 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   }
 
   public List<CustomSensor> getSensorList(){
-    return m_sensorList;
+    return mSensorList;
   }
 
   @Override
   public void OnSensorsListCbxChecked(int pos, boolean selected) {
-    /*CustomSensor sensor = m_sensorList.get(pos);
+    /*CustomSensor sensor = mSensorList.get(pos);
 
     if(sensor.state == SensorStates.Previewing && !selected){
-      m_sysSensorManager.unregisterListener(sensor.listener);
+      mSysSensorManager.unregisterListener(sensor.listener);
       sensor.state = SensorStates.Resting;
     }else if(sensor.state == SensorStates.Resting && selected){
-      m_sysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
-              m_previewDelay);
+      mSysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
+              mPreviewDelay);
       sensor.state = SensorStates.Previewing;
     }else{
       LOG.w("Unexpected branch");
