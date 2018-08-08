@@ -101,7 +101,7 @@ public class SensorsListAdapter extends BaseAdapter
    */
   @Override
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    if(sensor.dataDimension == 0){
+    /*if(sensor.dataDimension == 0){
       return;
     }
     StringBuilder tmpStr = new StringBuilder();
@@ -111,11 +111,10 @@ public class SensorsListAdapter extends BaseAdapter
         tmpStr.append("\n");
       }
     }
-    m_listWidgetsList.get(sensor.id).tvData.setText(tmpStr.toString());
+    m_listWidgetsList.get(sensor.id).tvData.setText(tmpStr.toString());*/
   }
 
   //TODO: clean codes below.
-
   private OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
   public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener){
     mOnCbxCheckedListener = listener;

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import donlon.android.sensors.activities.RecordingActivity;
 import donlon.android.sensors.utils.DataFileWriter;
@@ -21,7 +22,8 @@ public class RecordingManager implements SensorEventCallback {
 //  private Context mContext;
   private SensorsManager mSensorsManager;
   private String[] sensorNameList;
-  private final Map<CustomSensor, SensorEventsBuffer> mDataBufferMap = new HashMap<>();
+  private Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;
+  private Map<CustomSensor, Integer> mSensorEventHitCountsMap;// TODO: try AtomicInteger?
 
   private RecordingManager(SensorsManager sensorsManager){
     mSensorsManager = sensorsManager;
@@ -55,13 +57,18 @@ public class RecordingManager implements SensorEventCallback {
   private DataFileWriter mDataFileWriter;
 
   public boolean init(){
+    mDataBufferMap = new HashMap<>();
+    mSensorEventHitCountsMap = new HashMap<>();//TODO: test ArrayMap
+
     for(int i = 0; i < mSensorsManager.getSensorList().size(); i++){
       if(selectedSensors[i]){
         mDataBufferMap.put(mSensorsManager.getSensorList().get(i),
                 new SensorEventsBuffer(500));//TODO: diversity
+        mSensorEventHitCountsMap.put(mSensorsManager.getSensorList().get(i), 0);
         //TODO: differences between Queues
       }
     }
+
     mDataFileWriter = new DataFileWriter(mDataBufferMap);
     return mDataFileWriter.init();
   }
@@ -87,6 +94,8 @@ public class RecordingManager implements SensorEventCallback {
       mDataBufferMap.get(sensor).add(event);
 //      LOG.i("RRR  "+event.values[0]+", "+event.values[1]+", "+event.values[2]);
     }
+//    mSensorEventHitCountsMap.put() = mSensorEventHitCountsMap.get(sensor) + 1;
+    //TODO: Maybe sync needed
   }
 
   public void stopRecording(){
@@ -101,11 +110,11 @@ public class RecordingManager implements SensorEventCallback {
 
   private boolean mIsRecording;
 
-  private Thread mDataWritingThread;
-
   /**
    * A thread that save the data to file continuously.
    */
+  private Thread mDataWritingThread;
+
   private Runnable mDataWritingRunnable = new Runnable() {
     @Override
     public void run() {
