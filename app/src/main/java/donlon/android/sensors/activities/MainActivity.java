@@ -18,7 +18,7 @@ import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.LOG;
 
 public class MainActivity extends AppCompatActivity
-        implements RecordingManager.OnRecordingFinishedListener {
+        implements RecordingManager.OnRecordingCanceledListener {
 
   private SharedPreferences sharedPreferences;
   public SensorsManager mSensorsManager;
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity
         throwable.printStackTrace(pw);
         pw.flush();
         final String s = sw.toString();
-        LOG.d(s);
+        LOG.i(s);
 
         MainActivity.this.runOnUiThread(new Runnable() {
           @Override
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity
         mRecordingManager.showStarterDialog(MainActivity.this);
       }
     });
-    mRecordingManager.setOnRecordingFinishedListener(this);
+    mRecordingManager.setOnRecordingCanceledListener(this);
 
   }
 
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onRecordingFinished(boolean succeed) {
+  public void onRecordingCanceled(boolean succeed) {
     rollbackUpdateSwitchState();
   }
 

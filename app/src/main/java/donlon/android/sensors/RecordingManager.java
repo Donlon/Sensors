@@ -1,20 +1,12 @@
 package donlon.android.sensors;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,20 +14,21 @@ import java.util.Map;
 import donlon.android.sensors.activities.RecordingActivity;
 import donlon.android.sensors.utils.DataFileWriter;
 import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.SensorEventsBuffer;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class RecordingManager implements SensorEventCallback {
 //  private Context mContext;
   private SensorsManager mSensorsManager;
   private String[] sensorNameList;
-  private final Map<CustomSensor, ArrayList<SensorEvent>> mDataCacheMap = new HashMap<>();
+  private final Map<CustomSensor, SensorEventsBuffer> mDataBufferMap = new HashMap<>();
 
   private RecordingManager(SensorsManager sensorsManager){
     mSensorsManager = sensorsManager;
     sensorNameList = new String[sensorsManager.getSensorList().size()];
     int i = 0;
     for(CustomSensor sensor : sensorsManager.getSensorList()){
-      sensorNameList[++i] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
+      sensorNameList[i++] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
     }
   }
 
@@ -64,23 +57,23 @@ public class RecordingManager implements SensorEventCallback {
   public boolean init(){
     for(int i = 0; i < mSensorsManager.getSensorList().size(); i++){
       if(selectedSensors[i]){
-        mDataCacheMap.put(mSensorsManager.getSensorList().get(i),
-                new ArrayList<SensorEvent>(500));
+        mDataBufferMap.put(mSensorsManager.getSensorList().get(i),
+                new SensorEventsBuffer(500));//TODO: diversity
         //TODO: differences between Queues
       }
     }
-    mDataFileWriter = new DataFileWriter(mDataCacheMap);
+    mDataFileWriter = new DataFileWriter(mDataBufferMap);
     return mDataFileWriter.init();
   }
 
   public void startRecording(){
     mSensorsManager.clearCallbacksForAllSensors();
 
-    for (Map.Entry<CustomSensor, ArrayList<SensorEvent>> entry : mDataCacheMap.entrySet()) {
+    for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
       mSensorsManager.registerCallbackForSensor(entry.getKey(), this);
     }
 
-    mRecording = true;
+    mIsRecording = true;
     mDataWritingThread = new Thread(mDataWritingRunnable);
     mDataWritingThread.start();
   }
@@ -90,17 +83,23 @@ public class RecordingManager implements SensorEventCallback {
   // TODO: run on new thread
   @Override
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (mDataCacheMap){
-      mDataCacheMap.get(sensor).add(event);
+    synchronized (mDataFileWriter.dataBufferLock){
+      mDataBufferMap.get(sensor).add(event);
+//      LOG.i("RRR  "+event.values[0]+", "+event.values[1]+", "+event.values[2]);
     }
   }
 
   public void stopRecording(){
     mSensorsManager.clearCallbacksForAllSensors();
     mDataWritingThread.interrupt();//TODO: use "stop?"
+    try {
+      mDataFileWriter.closeFile();
+    } catch (IOException e) {
+      LOG.e(e.toString());
+    }
   }
 
-  private boolean mRecording;
+  private boolean mIsRecording;
 
   private Thread mDataWritingThread;
 
@@ -111,15 +110,17 @@ public class RecordingManager implements SensorEventCallback {
     @Override
     public void run() {
       try {
-        while(mRecording){
+        while(mIsRecording){
           Thread.sleep(1000);
-
           //Write frame
-          mDataFileWriter.write();
+          mDataFileWriter.flush();
         }
       } catch (InterruptedException e) {
-        e.printStackTrace();
-        LOG.e(e.getMessage());
+        LOG.i("Thread Interrupted");
+      } catch (IOException e){
+        if(mOnRecordingFailedListener != null) {
+          mOnRecordingFailedListener.onRecordingFailed();
+        }
       }
     }
   };
@@ -128,21 +129,34 @@ public class RecordingManager implements SensorEventCallback {
    * Give a callback to the caller activity
    */
   public void finish(){
-    mRecording = false;
+    mIsRecording = false;
     //TODO: release resources
-    if(mOnRecordingFinishedListener != null){
-      mOnRecordingFinishedListener.onRecordingFinished(true);
-    }
   }
 
-  private OnRecordingFinishedListener mOnRecordingFinishedListener;
+  /**
+   * OnRecordingFinishedListener
+   */
+  private OnRecordingCanceledListener mOnRecordingCanceledListener;
 
-  public void setOnRecordingFinishedListener(OnRecordingFinishedListener listener){
-    mOnRecordingFinishedListener = listener;
+  public void setOnRecordingCanceledListener(OnRecordingCanceledListener listener){
+    mOnRecordingCanceledListener = listener;
   }
 
-  public interface OnRecordingFinishedListener{
-    void onRecordingFinished(boolean succeed);
+  public interface OnRecordingCanceledListener{
+    void onRecordingCanceled(boolean succeed);
+  }
+
+  /**
+   * OnRecordingFailedListener
+   */
+  private OnRecordingFailedListener mOnRecordingFailedListener;
+
+  public void setOnRecordingFailedListener(OnRecordingFailedListener listener){
+    mOnRecordingFailedListener = listener;
+  }
+
+  public interface OnRecordingFailedListener{
+    void onRecordingFailed();
   }
 
   private boolean[] selectedSensors;
@@ -170,11 +184,15 @@ public class RecordingManager implements SensorEventCallback {
             .setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
               @Override
               public void onClick(DialogInterface dialog, int which) {
-                if(mOnRecordingFinishedListener != null){
-                  mOnRecordingFinishedListener.onRecordingFinished(false);
+                if(mOnRecordingCanceledListener != null){
+                  mOnRecordingCanceledListener.onRecordingCanceled(false);
                 }
               }
             })
             .show();
+  }
+
+  public boolean isRecording(){
+    return mIsRecording;
   }
 }

@@ -15,7 +15,10 @@ import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.SensorUtils;
 import donlon.android.sensors.utils.LOG;
 
-public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingFinishedListener {
+public class SensorDetailsActivity extends AppCompatActivity
+        implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener {
+  private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
+
   private SensorsManager sensorManager;
   private RecordingManager recordingManager;
   private CustomSensor mSensor;
@@ -163,7 +166,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
         break;
       case R.id.menuRecord:
         pauseViewing();
-        recordingManager.setOnRecordingFinishedListener(this);
+        recordingManager.setOnRecordingCanceledListener(this);
         recordingManager.showStarterDialog(this);
         break;
       case android.R.id.home: // back button
@@ -185,7 +188,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   }
 
   @Override
-  public void onRecordingFinished(boolean succeed) {
+  public void onRecordingCanceled(boolean succeed) {
     resumeViewing();
   }
 }

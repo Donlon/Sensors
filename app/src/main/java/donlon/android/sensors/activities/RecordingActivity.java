@@ -1,21 +1,32 @@
 package donlon.android.sensors.activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.RecordingService;
 import donlon.android.sensors.utils.LOG;
 
-public class RecordingActivity extends AppCompatActivity {
+public class RecordingActivity extends AppCompatActivity
+        implements RecordingManager.OnRecordingFailedListener {
+  private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
 
   private RecordingManager recordingManager;
+  private boolean mRecordingManagerInited = false;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -23,27 +34,50 @@ public class RecordingActivity extends AppCompatActivity {
     LOG.i( "Here we go!");
     initializeUi();
 
-    LOG.d("Thread ID = " + Thread.currentThread().getId());
-    LOG.d("before StartService");
+    recordingManager.setOnRecordingFailedListener(this);
 
-    //连续启动Service
-    Intent intentOne = new Intent(this, RecordingService.class);
-    startService(intentOne);
-    Intent intentTwo = new Intent(this, RecordingService.class);
-    startService(intentTwo);
-    Intent intentThree = new Intent(this, RecordingService.class);
-    startService(intentThree);
 
-    //停止Service
-    Intent intentFour = new Intent(this, RecordingService.class);
-    stopService(intentFour);
+    if(Build.VERSION.SDK_INT>=23){
+      if (
+              ActivityCompat.checkSelfPermission(
+                      this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                      == PackageManager.PERMISSION_GRANTED
+                      &&
+              ActivityCompat.checkSelfPermission(
+                      this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                      == PackageManager.PERMISSION_GRANTED) {
+        permissionGranted();
+      }else{
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                }, PERMISSIONS_REQUEST_READ_AND_WRITE_FILES);
+      }
+    }else {
+      permissionGranted();
+    }
 
-    //再次启动Service
-    Intent intentFive = new Intent(this, RecordingService.class);
-    startService(intentFive);
 
-    LOG.d("after StartService");
+  }
 
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    if(requestCode == PERMISSIONS_REQUEST_READ_AND_WRITE_FILES
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+      permissionGranted();
+    }
+  }
+
+  private void permissionGranted(){
+    if(!recordingManager.init()){
+      Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+    }else{
+      mRecordingManagerInited = true;
+    }
   }
 
   private FloatingActionButton fabStart;
@@ -55,7 +89,30 @@ public class RecordingActivity extends AppCompatActivity {
     fabStart.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
+        if(mRecordingManagerInited){
+          if(recordingManager.isRecording()){
+            recordingManager.stopRecording();
+            Toast.makeText(RecordingActivity.this,
+                    "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
+          }else{
+            recordingManager.startRecording();
+            Toast.makeText(RecordingActivity.this,
+                    "RecordingManager started.", Toast.LENGTH_SHORT).show();
+          }
+        }else{
+          Toast.makeText(RecordingActivity.this,
+                  "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+        }
+      }
+    });
+  }
 
+  @Override
+  public void onRecordingFailed() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -66,7 +123,7 @@ public class RecordingActivity extends AppCompatActivity {
     if(isFinishing()){
       recordingManager.finish();
     }else{
-      LOG.printStack("HHH")  ;
+      LOG.i("HHH");
     }
   }
 
