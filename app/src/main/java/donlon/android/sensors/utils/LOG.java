@@ -3,7 +3,7 @@ package donlon.android.sensors.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class LOG {
+public class LOG{
   private static String LOG_TAG = "Sensors_Dev";
 
   public static void d(String s){
@@ -25,7 +25,7 @@ public class LOG {
   public static void printStack(String s){
     try{
       throw new CurrentStack(s);
-    }catch (Exception e){
+    }catch(Exception e){
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
       e.printStackTrace(pw);
@@ -40,12 +40,14 @@ public class LOG {
 class CurrentStack extends Exception{
 
   private String mTitle;
+
   CurrentStack(String title){
     super();
     mTitle = title;
   }
+
   @Override
-  public String toString() {
+  public String toString(){
     return mTitle + ":";
   }
 }

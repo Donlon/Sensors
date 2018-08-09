@@ -17,8 +17,7 @@ import donlon.android.sensors.SensorsListAdapter;
 import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.LOG;
 
-public class MainActivity extends AppCompatActivity
-        implements RecordingManager.OnRecordingCanceledListener {
+public class MainActivity extends AppCompatActivity implements RecordingManager.OnRecordingCanceledListener{
 
   private SharedPreferences sharedPreferences;
   public SensorsManager mSensorsManager;
@@ -31,11 +30,11 @@ public class MainActivity extends AppCompatActivity
   private boolean mIsOpeningRecordingActivity;
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
-    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler(){
       @Override
-      public void uncaughtException(final Thread thread, final Throwable throwable) {
+      public void uncaughtException(final Thread thread, final Throwable throwable){
         throwable.printStackTrace();
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -44,9 +43,9 @@ public class MainActivity extends AppCompatActivity
         final String s = sw.toString();
         LOG.i(s);
 
-        MainActivity.this.runOnUiThread(new Runnable() {
+        MainActivity.this.runOnUiThread(new Runnable(){
           @Override
-          public void run() {
+          public void run(){
             new AlertDialog.Builder(MainActivity.this)
                     .setMessage(s)
                     .setTitle(throwable.getClass().getName())
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
 
 //    mCheckBtnLastChecked = savedInstanceState.getBoolean("updating_btn_checked", true);
-    LOG.d( "Here we go!");
+    LOG.d("Here we go!");
     mSensorsManager = SensorsManager.create(this);
     mRecordingManager = RecordingManager.create(mSensorsManager);
     initializeUi();
@@ -67,11 +66,12 @@ public class MainActivity extends AppCompatActivity
     mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
   }
 
-  private void initializeUi() {
+  private void initializeUi(){
     setContentView(R.layout.main_activity);
     LOG.d("Start");
 
-    mSensorsListAdapter = new SensorsListAdapter(this, sensorsListView, mSensorsManager.getSensorList());
+    mSensorsListAdapter = new SensorsListAdapter(
+            this, sensorsListView, mSensorsManager.getSensorList());
     mSensorsListAdapter.setOnCbxCheckedListener(mSensorsManager);
     sensorsListView = findViewById(R.id.lvSensors);
     updateSwitch = findViewById(R.id.swUpdate);
@@ -80,9 +80,9 @@ public class MainActivity extends AppCompatActivity
     sensorsListView.setOnItemClickListener(listViewClickListener);
     sensorsListView.setAdapter(mSensorsListAdapter);
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
-    fabMain.setOnClickListener(new View.OnClickListener() {
+    fabMain.setOnClickListener(new View.OnClickListener(){
       @Override
-      public void onClick(View v) {
+      public void onClick(View v){
         saveUpdateSwitchState();
         mIsOpeningRecordingActivity = true;
         mRecordingManager.showStarterDialog(MainActivity.this);
@@ -94,16 +94,17 @@ public class MainActivity extends AppCompatActivity
 
   /**
    * It doesn't work.
+   *
    * @param outState outState
    */
   @Override
-  protected void onSaveInstanceState(Bundle outState) {
+  protected void onSaveInstanceState(Bundle outState){
     super.onSaveInstanceState(outState);
     outState.putBoolean("updating_btn_checked", mCheckBtnLastChecked);
   }
 
   @Override
-  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+  protected void onRestoreInstanceState(Bundle savedInstanceState){
     super.onRestoreInstanceState(savedInstanceState);
   }
 
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void overridePendingTransition(int enterAnim, int exitAnim) {
+  public void overridePendingTransition(int enterAnim, int exitAnim){
     super.overridePendingTransition(enterAnim, 0);
   }
 
@@ -142,21 +143,20 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void rollbackUpdateSwitchState(){
-    updateSwitch.setChecked(
-            sharedPreferences.getBoolean("updating_btn_checked", true));
+    updateSwitch.setChecked(sharedPreferences.getBoolean("updating_btn_checked", true));
   }
 
   @Override
-  public void onRecordingCanceled(boolean succeed) {
+  public void onRecordingCanceled(boolean succeed){
     rollbackUpdateSwitchState();
   }
 
   /**
    * Listener
    */
-  private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener() {
+  private CompoundButton.OnCheckedChangeListener onUpdateSwitchListener = new CompoundButton.OnCheckedChangeListener(){
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
       if(isChecked){
         mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
         mSensorsListAdapter.enableAllCheckBoxes();
@@ -170,14 +170,14 @@ public class MainActivity extends AppCompatActivity
   /**
    * Listener
    */
-  private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
+  private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener(){
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id){
       startSensorDetailsActivity(position);
     }
   };
 
-  private void startSensorDetailsActivity(int position) {
+  private void startSensorDetailsActivity(int position){
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
     intent.putExtra("SensorPos", position);
     startActivity(intent);

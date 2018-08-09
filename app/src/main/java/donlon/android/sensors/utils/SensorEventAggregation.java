@@ -1,7 +1,6 @@
 package donlon.android.sensors.utils;
 
-public
-class SensorEventAggregation{
+public class SensorEventAggregation{
   public float values[];
   public float accuracy;
   public long timeStamp;
@@ -15,7 +14,7 @@ class SensorEventAggregation{
     values = new float[dataDimension];
   }
 
-  public void set(float[] values, float accuracy, long timeStamp) {
+  public void set(float[] values, float accuracy, long timeStamp){
     System.arraycopy(values, 0, this.values, 0, values.length);
     this.accuracy = accuracy;
     this.timeStamp = timeStamp;

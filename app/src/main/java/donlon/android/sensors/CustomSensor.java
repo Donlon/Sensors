@@ -12,7 +12,7 @@ import donlon.android.sensors.utils.SensorUtils;
 
   String data();
   String sensorInfo();*/
-public class CustomSensor {
+public class CustomSensor{
   public int id = -1;
   public String sensorName;
   public String sensorInfo;

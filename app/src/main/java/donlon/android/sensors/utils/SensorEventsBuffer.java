@@ -43,7 +43,7 @@ public class SensorEventsBuffer{
     mCurrentPosition = 0;
   }
 
-  public boolean isEmpty() {
+  public boolean isEmpty(){
     return mCurrentPosition == 0;
   }
 

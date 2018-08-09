@@ -17,14 +17,13 @@ import java.util.List;
 
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorsListAdapter extends BaseAdapter
-        implements CompoundButton.OnCheckedChangeListener, SensorEventCallback {
+public class SensorsListAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, SensorEventCallback{
   private Context m_context;
   private List<CustomSensor> m_sensorList;
   private List<SensorListWidgets> m_listWidgetsList;//TODO: use map fashion
   private ListView m_correlatedView;
 
-  public SensorsListAdapter(Context context, ListView correlatedView, List<CustomSensor> sensorList) {
+  public SensorsListAdapter(Context context, ListView correlatedView, List<CustomSensor> sensorList){
     m_context = context;
     m_sensorList = sensorList;
     m_correlatedView = correlatedView;
@@ -33,22 +32,22 @@ public class SensorsListAdapter extends BaseAdapter
 
 
   @Override
-  public int getCount() {
+  public int getCount(){
     return m_sensorList.size();
   }
 
   @Override
-  public CustomSensor getItem(int position) {
+  public CustomSensor getItem(int position){
     return m_sensorList.get(position);
   }
 
   @Override
-  public long getItemId(int position) {
+  public long getItemId(int position){
     return position;
   }
 
   @Override
-  public View getView(int position, View convertView, ViewGroup parent) {
+  public View getView(int position, View convertView, ViewGroup parent){
     /*if(convertView != null){
       return convertView;
     }*/
@@ -60,8 +59,7 @@ public class SensorsListAdapter extends BaseAdapter
     for(CustomSensor sensor : m_sensorList){
       SensorListWidgets widgets = new SensorListWidgets();
 
-      widgets.view = LayoutInflater.from(m_context).inflate(
-              R.layout.sensors_preview_list_entry, m_correlatedView, false);
+      widgets.view = LayoutInflater.from(m_context).inflate(R.layout.sensors_preview_list_entry, m_correlatedView, false);
 
       widgets.tvPrimaryName = widgets.view.findViewById(R.id.tvSensorPrimaryName);
       widgets.tvSecondaryName = widgets.view.findViewById(R.id.tvSensorSecondaryName);
@@ -81,10 +79,8 @@ public class SensorsListAdapter extends BaseAdapter
   }
 
   private void setStarterText(SensorListWidgets widgets, CustomSensor sensor){
-    widgets.tvPrimaryName.setText(
-            SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
-    widgets.tvSecondaryName.setText(
-            SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType()));
+    widgets.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
+    widgets.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType()));
     widgets.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
 
     if(sensor.dataDimension == 3){
@@ -96,11 +92,12 @@ public class SensorsListAdapter extends BaseAdapter
 
   /**
    * Callback from Sensor SensorManager
+   *
    * @param sensor sensor
    * @param event event
    */
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event){
     /*if(sensor.dataDimension == 0){
       return;
     }
@@ -116,12 +113,13 @@ public class SensorsListAdapter extends BaseAdapter
 
   //TODO: clean codes below.
   private OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
+
   public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener){
     mOnCbxCheckedListener = listener;
   }
 
   @Override
-  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
     int pos = 0;
     for(SensorListWidgets w : m_listWidgetsList){
       if(w.cbxEnabled == buttonView){
@@ -146,7 +144,7 @@ public class SensorsListAdapter extends BaseAdapter
     }
   }
 
-  public interface OnSensorsListCbxCheckedListener {
+  public interface OnSensorsListCbxCheckedListener{
     void OnSensorsListCbxChecked(int pos, boolean selected);
   }
 

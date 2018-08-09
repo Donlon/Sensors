@@ -18,8 +18,8 @@ import donlon.android.sensors.utils.LOG;
 import donlon.android.sensors.utils.SensorEventsBuffer;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class RecordingManager implements SensorEventCallback {
-//  private Context mContext;
+public class RecordingManager implements SensorEventCallback{
+  //  private Context mContext;
   private SensorsManager mSensorsManager;
   private String[] sensorNameList;
   private Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;
@@ -36,6 +36,7 @@ public class RecordingManager implements SensorEventCallback {
 
   /**
    * SingleTon creator
+   *
    * @return instance created
    */
   public static RecordingManager create(SensorsManager sensorsManager){
@@ -48,7 +49,7 @@ public class RecordingManager implements SensorEventCallback {
   private static RecordingManager singleTonInstance;
 
   public static /*synchronized */RecordingManager getInstance(){
-    if (null == singleTonInstance){
+    if(null == singleTonInstance){
       LOG.printStack("");
     }
     return singleTonInstance;
@@ -76,7 +77,7 @@ public class RecordingManager implements SensorEventCallback {
   public void startRecording(){
     mSensorsManager.clearCallbacksForAllSensors();
 
-    for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
+    for(Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()){
       mSensorsManager.registerCallbackForSensor(entry.getKey(), this);
     }
 
@@ -89,8 +90,8 @@ public class RecordingManager implements SensorEventCallback {
   // TODO: use listeners respectively
   // TODO: run on new thread
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (mDataFileWriter.dataBufferLock){
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event){
+    synchronized(mDataFileWriter.dataBufferLock){
       mDataBufferMap.get(sensor).add(event);
 //      LOG.i("RRR  "+event.values[0]+", "+event.values[1]+", "+event.values[2]);
     }
@@ -101,9 +102,9 @@ public class RecordingManager implements SensorEventCallback {
   public void stopRecording(){
     mSensorsManager.clearCallbacksForAllSensors();
     mDataWritingThread.interrupt();//TODO: use "stop?"
-    try {
+    try{
       mDataFileWriter.closeFile();
-    } catch (IOException e) {
+    }catch(IOException e){
       LOG.e(e.toString());
     }
   }
@@ -115,19 +116,19 @@ public class RecordingManager implements SensorEventCallback {
    */
   private Thread mDataWritingThread;
 
-  private Runnable mDataWritingRunnable = new Runnable() {
+  private Runnable mDataWritingRunnable = new Runnable(){
     @Override
-    public void run() {
-      try {
+    public void run(){
+      try{
         while(mIsRecording){
           Thread.sleep(1000);
           //Write frame
           mDataFileWriter.flush();
         }
-      } catch (InterruptedException e) {
+      }catch(InterruptedException e){
         LOG.i("Thread Interrupted");
-      } catch (IOException e){
-        if(mOnRecordingFailedListener != null) {
+      }catch(IOException e){
+        if(mOnRecordingFailedListener != null){
           mOnRecordingFailedListener.onRecordingFailed();
         }
       }
@@ -174,31 +175,25 @@ public class RecordingManager implements SensorEventCallback {
     selectedSensors = new boolean[mSensorsManager.getSensorList().size()];
     AlertDialog alertDialog = new AlertDialog.Builder(activity)
             .setTitle(R.string.recording_starter_title)
-            .setMultiChoiceItems(
-                    sensorNameList,
-                    selectedSensors,
-                    new DialogInterface.OnMultiChoiceClickListener() {
-                      @Override
-                      public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                        selectedSensors[which] = isChecked;
-                      }
-                    })
-            .setPositiveButton(R.string.btn_positive, new DialogInterface.OnClickListener() {
-              @Override
-              public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(activity, RecordingActivity.class);
-                activity.startActivityForResult(intent,404);
-              }
-            })
-            .setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-              @Override
-              public void onClick(DialogInterface dialog, int which) {
-                if(mOnRecordingCanceledListener != null){
-                  mOnRecordingCanceledListener.onRecordingCanceled(false);
-                }
-              }
-            })
-            .show();
+            .setMultiChoiceItems(sensorNameList, selectedSensors, new DialogInterface.OnMultiChoiceClickListener(){
+      @Override
+      public void onClick(DialogInterface dialog, int which, boolean isChecked){
+        selectedSensors[which] = isChecked;
+      }
+    }).setPositiveButton(R.string.btn_positive, new DialogInterface.OnClickListener(){
+      @Override
+      public void onClick(DialogInterface dialog, int which){
+        Intent intent = new Intent(activity, RecordingActivity.class);
+        activity.startActivityForResult(intent, 404);
+      }
+    }).setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener(){
+      @Override
+      public void onClick(DialogInterface dialog, int which){
+        if(mOnRecordingCanceledListener != null){
+          mOnRecordingCanceledListener.onRecordingCanceled(false);
+        }
+      }
+    }).show();
   }
 
   public boolean isRecording(){

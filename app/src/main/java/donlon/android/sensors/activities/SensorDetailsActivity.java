@@ -15,8 +15,7 @@ import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.SensorUtils;
 import donlon.android.sensors.utils.LOG;
 
-public class SensorDetailsActivity extends AppCompatActivity
-        implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener {
+public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener{
   private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
 
   private SensorsManager sensorManager;
@@ -81,9 +80,10 @@ public class SensorDetailsActivity extends AppCompatActivity
 
   private int eventHits = 0;
   private final Object eventHitsSync = new Object();
+
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (eventHitsSync){
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event){
+    synchronized(eventHitsSync){
       eventHits++;
     }
     tvValue_1.setText(String.valueOf(event.values[0]));
@@ -104,34 +104,34 @@ public class SensorDetailsActivity extends AppCompatActivity
 
   //TODO: recycling
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
     initializeUi();
     initializeSensor();
     sensorManager.registerCallbackForSensor(mSensor, this);
     recordingManager = RecordingManager.getInstance();
 
-    new Thread(new Runnable() {
+    new Thread(new Runnable(){
       @Override
-      public void run() {
-        while(true) {
-          try {
+      public void run(){
+        while(true){
+          try{
             Thread.sleep(1000);
 
             final int v_eventHits = eventHits;
             runOnUiThread(new Runnable(){
               @Override
-              public void run() {
+              public void run(){
 //                Toast.makeText(SensorDetailsActivity.this, "Hits per second: " + v_eventHits, Toast.LENGTH_SHORT)
 //                        .show();
                 mActionBar.setTitle("Hits per second: " + v_eventHits);
               }
             });
 
-            synchronized (eventHitsSync){
+            synchronized(eventHitsSync){
               eventHits = 0;
             }
-          } catch (InterruptedException e) {
+          }catch(InterruptedException e){
             e.printStackTrace();
             break;
           }
@@ -141,20 +141,22 @@ public class SensorDetailsActivity extends AppCompatActivity
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
+  public boolean onCreateOptionsMenu(Menu menu){
     getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
     return true;
   }
+
   private boolean mViewingPaused = true;
 
   /**
    * Event listener for clicks on title bar.
+   *
    * @param item menu item
    * @return what should be returned
    */
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
+  public boolean onOptionsItemSelected(MenuItem item){
+    switch(item.getItemId()){
       case R.id.menuPause:
         if(mViewingPaused){
           resumeViewing();
@@ -188,7 +190,7 @@ public class SensorDetailsActivity extends AppCompatActivity
   }
 
   @Override
-  public void onRecordingCanceled(boolean succeed) {
+  public void onRecordingCanceled(boolean succeed){
     resumeViewing();
   }
 }
