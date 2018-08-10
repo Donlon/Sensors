@@ -67,7 +67,7 @@
                     android:id="@+id/tvCpuUsage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cpu_usage_value" />
+                    android:text="@string/value_no_data" />
             </TableRow>
 
             <TableRow
@@ -84,7 +84,7 @@
                     android:id="@+id/tvWrittenFrames"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/written_frames_value" />
+                    android:text="@string/value_no_data" />
             </TableRow>
 
             <TableRow
@@ -95,7 +95,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
-                    android:text="@string/written_bytes" />
+                    android:text="@string/value_no_data" />
 
                 <TextView
                     android:id="@+id/tvWrittenBytes"
@@ -171,6 +171,43 @@
                     android:text="Accumulated Hits"
                     android:textStyle="bold" />
             </TableRow>
+            <TableRow
+                android:id="@+id/rowAllSensors"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <View
+                    android:id="@+id/place_holder"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:paddingEnd="10dp"
+                    android:text="@string/all_sensors"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAllSensorsLastHits"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/value_no_data"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAllSensorsAllHits"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/value_no_data"
+                    android:textStyle="bold" />
+
+            </TableRow>
+
 
         </TableLayout>
     </ScrollView>

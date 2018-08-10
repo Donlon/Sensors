@@ -25,6 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +60,9 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private TableLayout tblSensorsInfo;
 
   private RecordingManagerWidgetsEditor mCurrentScreenEditor;
+
 private boolean mFirstRecord = true;
+
   private Runnable mCpuUsageUpdateRunnable = new Runnable(){
     private CpuUsage sysSummaryCpuUsage = CpuUsageImplement.createSysSummaryCpuUsage();
     private CpuUsage currentProcCpuUsage = CpuUsageImplement.createCurrentProcessCpuUsage();
@@ -86,9 +90,9 @@ private boolean mFirstRecord = true;
   @Override
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
+    LOG.i("Here we go!");
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
     recordingManager = RecordingManager.getInstance();
-    LOG.i("Here we go!");
     initializeUi();
     mCpuUsageUpdateRunnable.run();
 
@@ -225,11 +229,13 @@ private boolean mFirstRecord = true;
   }
 
   private String buildDataFilePath(){
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+
     return Environment.getExternalStorageDirectory()
             + "/sensor_data_"
             + sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0)
             +"_"
-            + System.currentTimeMillis()
+            + sdf.format(new Date())
             + ".data";
   }
 
@@ -335,6 +341,10 @@ private boolean mFirstRecord = true;
 
     public void runOnUiThread(Runnable runnable, int delay){
       mHandler.postDelayed(runnable, delay);
+    }
+
+    public void removeRunnable(Runnable runnable){
+      mHandler.removeCallbacks(runnable);
     }
   }
 }

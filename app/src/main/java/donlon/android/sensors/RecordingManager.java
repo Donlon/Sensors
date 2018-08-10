@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.hardware.SensorEvent;
 import android.support.v7.app.AlertDialog;
 import android.util.ArraySet;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,10 +41,12 @@ public class RecordingManager implements SensorEventCallback{
     mSensorsManager = sensorsManager;
     sensorsToRecord = new ArraySet<>();
     selectedSensors = new ArraySet<>();
-    sensorNameList = new String[sensorsManager.getSensorList().size()];
+    selectedSensorsArray = new boolean[mSensorsManager.getSensorList().size() + 1];
+    sensorNameList = new String[sensorsManager.getSensorList().size() + 1];
+    sensorNameList[0] = "All Sensors";//TODO: i18n
     int i = 0;
     for(CustomSensor sensor : sensorsManager.getSensorList()){
-      sensorNameList[i++] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
+      sensorNameList[++i] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
     }
     mIsRecording = false;
     mInitialized = false;
@@ -101,9 +104,16 @@ public class RecordingManager implements SensorEventCallback{
   }
 
   public void setWidgetEditor(RecordingActivity.RecordingManagerWidgetsEditor widgetsEditor){
+//    if(widgetsEditor == null){
+    if(mWidgetsEditor != null){
+      mWidgetsEditor.removeRunnable(uiTimeUpdateRunnable);
+      mWidgetsEditor.removeRunnable(uiContinuousUpdateRunnable);
+    }
+//    }
     mWidgetsEditor = widgetsEditor;
-    if(isRecording() && widgetsEditor != null){
-      uiUpdateRunnable.run();
+    if(isRecording() && widgetsEditor != null){//resume update
+      uiTimeUpdateRunnable.run();
+      uiContinuousUpdateRunnable.run();//TODO: Stop it by clearQueue when finished
     }
   }
 
@@ -118,7 +128,8 @@ public class RecordingManager implements SensorEventCallback{
     mDataWritingThread = new Thread(mDataWritingRunnable);
     mDataWritingThread.start();
 
-    uiUpdateRunnable2.run();//TODO: Stop it by clearQueue when finished
+    uiTimeUpdateRunnable.run();
+    uiContinuousUpdateRunnable.run();//TODO: Stop it by clearQueue when finished
   }
 
   // TODO: use listeners respectively
@@ -153,13 +164,13 @@ public class RecordingManager implements SensorEventCallback{
   private Runnable mDataWritingRunnable = new Runnable(){
     @Override
     public void run(){
-      updateUi();
+      updateUiOnFrame();
       try{
         while(mIsRecording){
           Thread.sleep(403);//TODO: write this delay to data file as metadata
           //Write frame
           mDataFileWriter.flush();
-          updateUi();
+          updateUiOnFrame();
           for(Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()){
             entry.getValue().makeAsFrame();
           }
@@ -171,20 +182,20 @@ public class RecordingManager implements SensorEventCallback{
           mOnRecordingFailedListener.onRecordingFailed();
         }
       }
-      updateUi();
+      updateUiOnFrame();
     }
   };
 
-  private void updateUi(){
+  private void updateUiOnFrame(){
     if(mWidgetsEditor != null){
-      mWidgetsEditor.runOnUiThread(uiUpdateRunnable);
+      mWidgetsEditor.runOnUiThread(uiOnFrameUpdateRunnable);
     }
   }
 
   /**
-   * Triggered each frame (each writing)
+   * Triggered each frame (each writing), indirectly called from DataWritingThread
    */
-  private Runnable uiUpdateRunnable = new Runnable(){
+  private Runnable uiOnFrameUpdateRunnable = new Runnable(){
     @Override
     public void run(){
       if(mWidgetsEditor != null){//weird
@@ -211,9 +222,9 @@ public class RecordingManager implements SensorEventCallback{
   };
 
   /**
-   * Quickly triggered Runnable
+   * Quickly triggered Runnable, called from UI Thread
    */
-  private Runnable uiUpdateRunnable2 = new Runnable(){
+  private Runnable uiContinuousUpdateRunnable = new Runnable(){
     @Override
     public void run(){
       if(mWidgetsEditor != null){//weird
@@ -222,6 +233,51 @@ public class RecordingManager implements SensorEventCallback{
                   .setText(String.valueOf(entry.getValue().get()));
         }
         mWidgetsEditor.runOnUiThread(this, 33);
+      }
+    }
+  };
+
+  /**
+   * Called from UI Thread
+   */
+  private Runnable uiTimeUpdateRunnable = new Runnable(){
+    private int time = 0;
+    private static final String C1 = " ";
+    private static final String C2 = ":";
+    private boolean parity;
+
+    StringBuilder builder = new StringBuilder();
+    private void appendTimeChars(StringBuilder builder, int t){
+      if(t<10){
+        builder.append('0');
+        builder.append(t);
+      }else{
+        builder.append(t);
+      }
+    }
+
+    @Override
+    public void run(){
+      if(mWidgetsEditor != null){//weird
+        mWidgetsEditor.runOnUiThread(this, 500);
+
+
+        appendTimeChars(builder, time / 3600);
+        builder.append(parity? C1 : C2);
+        appendTimeChars(builder, (time % 3600) / 60);
+        builder.append(parity? C1 : C2);
+        appendTimeChars(builder, time % 60);
+
+        builder.append(" (Estimated)");
+
+        mWidgetsEditor.tvElapsedTime.setText(builder.toString());
+        builder.setLength(0);
+
+        if(parity){
+          time++;
+        }
+
+        parity = !parity;
       }
     }
   };
@@ -252,29 +308,87 @@ public class RecordingManager implements SensorEventCallback{
    */
   private OnRecordingFailedListener mOnRecordingFailedListener;
 
-
   public void setOnRecordingFailedListener(OnRecordingFailedListener listener){
     mOnRecordingFailedListener = listener;
   }
+
   public interface OnRecordingFailedListener{
     void onRecordingFailed();
-
   }
 
-  public void showStarterDialog(final Activity activity){
+  public void showStarterDialog(Activity activity, int startSensor){
+    for(int i=0; i<selectedSensorsArray.length; i++){
+      //must be true when i==0
+      selectedSensorsArray[i] =
+              i - 1 == startSensor;
+    }
+    showStarterDialogInternal(activity);
+  }
+
+  public void showStarterDialog(Activity activity){
+    for(int i=0; i<selectedSensorsArray.length; i++){
+      selectedSensorsArray[i] = false;
+    }
+    showStarterDialogInternal(activity);
+  }
+
+  private void showStarterDialogInternal(final Activity activity){
     selectedSensors.clear();
-    selectedSensorsArray = new boolean[mSensorsManager.getSensorList().size()];
-    AlertDialog alertDialog = new AlertDialog.Builder(activity)
+    AlertDialog.Builder builder = new AlertDialog.Builder(activity)
             .setTitle(R.string.recording_starter_title)
             .setMultiChoiceItems(sensorNameList, selectedSensorsArray, new DialogInterface.OnMultiChoiceClickListener(){
       @Override
       public void onClick(DialogInterface dialog, int which, boolean isChecked){
         selectedSensorsArray[which] = isChecked;
-        selectedSensors.add(mSensorsManager.getSensorList().get(which));//TODO: not advanced enough?
+
+        if(which == 0){
+          for(int i=1; i<selectedSensorsArray.length; i++){
+            if(selectedSensorsArray[i] != isChecked){//assimilate all selections
+              //Maybe some side codes will be executed
+//              onClick(dialog, i, isChecked);
+              ((AlertDialog)dialog).getListView().setItemChecked(i, isChecked);
+              selectedSensorsArray[i] = isChecked;
+              if(isChecked){
+                selectedSensors.add(mSensorsManager.getSensorList().get(i - 1));//TODO: not advanced enough?
+              }else{
+                selectedSensors.remove(mSensorsManager.getSensorList().get(i - 1));//TODO: not advanced enough?
+              }
+            }
+          }
+        }else{
+          if(isChecked){
+            selectedSensors.add(mSensorsManager.getSensorList().get(which - 1));//TODO: not advanced enough?
+          }else{
+            selectedSensors.remove(mSensorsManager.getSensorList().get(which - 1));//TODO: not advanced enough?
+          }
+
+          if(selectedSensorsArray[0]){//all was selected & indicating that isChecked==true
+            ((AlertDialog)dialog).getListView().setItemChecked(0, false);
+            selectedSensorsArray[0] = false;
+          }else{
+            if(isChecked){
+              boolean selectedAll = true;
+              for(int i=1; i<selectedSensorsArray.length; i++){
+                selectedAll &= selectedSensorsArray[i];
+              }
+              if(selectedAll){
+                ((AlertDialog)dialog).getListView().setItemChecked(0, true);
+                selectedSensorsArray[0] = true;
+              }
+            }
+          }
+        }
       }
     }).setPositiveButton(R.string.btn_positive, new DialogInterface.OnClickListener(){
       @Override
       public void onClick(DialogInterface dialog, int which){
+        if(selectedSensors.isEmpty()){
+          Toast.makeText(activity, "Please select more...", Toast.LENGTH_SHORT).show();
+          if(mOnRecordingCanceledListener != null){
+            mOnRecordingCanceledListener.onRecordingCanceled(false);
+          }
+          return;
+        }
         mInitialized = false;
         sensorsToRecord.clear();
         sensorsToRecord.addAll(selectedSensors);
@@ -288,7 +402,8 @@ public class RecordingManager implements SensorEventCallback{
           mOnRecordingCanceledListener.onRecordingCanceled(false);
         }
       }
-    }).show();
+    });
+    AlertDialog alertDialog = builder.show();
   }
 
   public Set<CustomSensor> getSensorsToRecord(){

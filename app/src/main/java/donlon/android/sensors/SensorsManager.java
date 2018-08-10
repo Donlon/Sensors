@@ -39,7 +39,9 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
       mSensorList.add(sensor);
       count++;
     }
-    mCallbacksSet = new HashMap<>();//TODO: testify the efficiency of ArrayMap
+    mCallbacksSet = new HashMap<>();
+    //TODO: testify the efficiency of ArrayMap or wrap the listener
+
   }
 
   /**

@@ -81,7 +81,7 @@
                         android:id="@+id/tvCpuUsage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cpu_usage_value" />
+                        android:text="@string/value_no_data" />
                 </TableRow>
 
                 <TableRow
@@ -98,7 +98,7 @@
                         android:id="@+id/tvWrittenFrames"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/written_frames_value" />
+                        android:text="@string/value_no_data" />
                 </TableRow>
 
                 <TableRow
@@ -115,7 +115,7 @@
                         android:id="@+id/tvWrittenBytes"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/written_bytes_value" />
+                        android:text="@string/value_no_data" />
                 </TableRow>
             </TableLayout>
 
