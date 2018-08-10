@@ -6,7 +6,7 @@ import donlon.android.sensors.utils.LOG;
 import donlon.android.sensors.utils.SensorUtils;
 
 /*
-  String sensorName();
+  String primaryName();
   int dataCounts();
   String dataUnitStr();
 
@@ -14,8 +14,7 @@ import donlon.android.sensors.utils.SensorUtils;
   String sensorInfo();*/
 public class CustomSensor{
   public int id = -1;
-  public String sensorName;
-  public String sensorInfo;
+  public String primaryName;
 
   private String m_dataUnitSuffix;
 
@@ -34,9 +33,9 @@ public class CustomSensor{
     dataDimension = SensorUtils.getSensorDataDimension(sensor.getType());
     m_dataUnitSuffix = " " + SensorUtils.getDataUnit(sensor.getType());
 
-    sensorName = sensor.getName();
-    LOG.d(sensorName);
-    sensorInfo = "Info";
+    primaryName = sensor.getName();//TODO
+
+    LOG.d(primaryName);
   }
 
   public Sensor getSensorObject(){

@@ -28,7 +28,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   private TextView tvValue_2;
   private TextView tvValue_3;
 
-  android.support.v7.app.ActionBar mActionBar;
+  private android.support.v7.app.ActionBar mActionBar;
 
   private void initializeUi(){
     setContentView(R.layout.sensor_details_activity);

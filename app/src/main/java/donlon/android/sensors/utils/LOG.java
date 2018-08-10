@@ -35,6 +35,14 @@ public class LOG{
     }
   }
 
+  public static void e(Exception ex){
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    ex.printStackTrace(pw);
+    pw.flush();
+    android.util.Log.w(LOG_TAG, "Thrown at " + Thread.currentThread().toString());
+    android.util.Log.w(LOG_TAG, sw.toString());
+  }
 }
 
 class CurrentStack extends Exception{

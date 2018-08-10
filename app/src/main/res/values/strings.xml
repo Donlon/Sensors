@@ -25,5 +25,16 @@
     <string name="btn_positive">OK</string>
     <string name="btn_cancel">Cancel</string>
     <string name="set_storage_path">Set Storage Folder</string>
+    <string name="cpu_usage">CPU Usage:</string>
+    <string name="written_frames">Written Frames:</string>
+    <string name="written_bytes">Written Bytes:</string>
+    <string name="written_frames_value">1234</string>
+    <string name="written_bytes_value">1,432,654</string>
+    <string name="writing_flash_light_description">Flash Light</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="recording_activity_table_all_sensors">All Sensors</string>
+    <string name="value_no_data">--</string>
+    <string name="all_sensors">All Sensors</string>
+    <string name="status_recording">RECORDING</string>
 
 </resources>

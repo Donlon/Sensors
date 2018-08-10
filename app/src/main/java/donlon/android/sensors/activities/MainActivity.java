@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
       }
     });
     mRecordingManager.setOnRecordingCanceledListener(this);
-
   }
 
   /**

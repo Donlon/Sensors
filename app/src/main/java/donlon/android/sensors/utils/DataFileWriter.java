@@ -16,7 +16,7 @@ import donlon.android.sensors.CustomSensor;
 public class DataFileWriter{
   private static final int DATA_FILE_VERSION = 1;
   public Object dataBufferLock;
-
+  private String mFilePath;
   /**
    * Reference from RecordingManager
    */
@@ -26,11 +26,18 @@ public class DataFileWriter{
 
   public DataFileWriter(Map<CustomSensor, SensorEventsBuffer> dataCacheMap){
     mDataCacheMap = dataCacheMap;
+    dataBufferLock = new Object();
+  }
+
+  public void setDataFilePath(String path){
+    mFilePath = path;
   }
 
   public boolean init(){
-    dataBufferLock = new Object();
-    File file = new File(Environment.getExternalStorageDirectory() + "/t.data");
+    if(mFilePath == null){
+      return false;
+    }
+    File file = new File(mFilePath);
     try{
       if(!file.exists()){
         if(!file.createNewFile()){
@@ -114,18 +121,14 @@ public class DataFileWriter{
     sensorsInfoBuffer.reset();
   }
 
-  public int getWrittenBytes(){
-    return mDataFileOutputStream.size();//TODO: should it be synchronized?
-  }
-
   private byte[] separator = { 1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1 };
 
   private int writtenFramesCount;
 
 
   private ByteArrayOutputStream frameBuffer;
-  private DataOutputStream frameBufferOS;
 
+  private DataOutputStream frameBufferOS;
   public void flush() throws IOException{
     //TODO: just sync with each ArrayList<SensorEvent>
     synchronized(dataBufferLock){//TODO: das ist OK?
@@ -156,7 +159,6 @@ public class DataFileWriter{
           for(int j = 0; j < entry.getKey().dataDimension; j++){//event.values.length
             frameBufferOS.writeFloat(event.values[j]);
           }
-//          LOG.i(event.values[0]+", "+event.values[1]+", "+event.values[2]);
         }
 
         entry.getValue().clear();
@@ -170,7 +172,18 @@ public class DataFileWriter{
     }
   }
 
+  public int getWrittenBytes(){
+    return mDataFileOutputStream.size();//TODO: should it be synchronized?
+  }
+  public int getWrittenFrames(){
+    return writtenFramesCount;//TODO: should it be synchronized?
+  }
+
   public void closeFile() throws IOException{
     mDataFileOutputStream.close();
+  }
+
+  public static String formatBytes(int bytes){
+    return bytes + " Bytes";//TODO: formatting
   }
 }

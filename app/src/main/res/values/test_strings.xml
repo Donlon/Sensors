@@ -5,4 +5,6 @@
     <string name="data_prefix">x=\ny=\nz=</string>
     <string name="data">1.00000000\n-1.00000000\n2.30000000</string>
     <string name="data_unit">m/s²</string>
+    <string name="saved_location">Saved Location: /sdcard/data/sensor_record_20180808XXXX.data</string>
+    <string name="cpu_usage_value">20%</string>
 </resources>
