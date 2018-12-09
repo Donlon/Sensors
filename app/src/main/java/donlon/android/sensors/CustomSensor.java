@@ -16,6 +16,9 @@ public class CustomSensor{
   public int id = -1;
   public String primaryName;
 
+  public int flag = 0;
+  public static final int FLAG_3D_DATA = 1 << 2;
+
   private String m_dataUnitSuffix;
 
   public SensorsListAdapter.SensorListWidgets correlatedPreviewingListWidgets;
@@ -40,5 +43,9 @@ public class CustomSensor{
 
   public Sensor getSensorObject(){
     return m_sensor;
+  }
+
+  public boolean is3DData(){
+    return (flag & FLAG_3D_DATA) != 0;
   }
 }

@@ -36,12 +36,25 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
     for(Sensor s : allSensor){
       CustomSensor sensor = new CustomSensor(s);
       sensor.id = count;
+      initSensor(sensor);
       mSensorList.add(sensor);
       count++;
     }
     mCallbacksSet = new HashMap<>();
     //TODO: testify the efficiency of ArrayMap or wrap the listener
 
+  }
+
+  private void initSensor(CustomSensor sensor){
+    switch(sensor.getSensorObject().getType()){
+      case Sensor.TYPE_ACCELEROMETER:
+      case Sensor.TYPE_GRAVITY:
+      case Sensor.TYPE_LINEAR_ACCELERATION:
+      case Sensor.TYPE_MAGNETIC_FIELD:
+        sensor.flag |= CustomSensor.FLAG_3D_DATA;
+      default:
+        break;
+    }
   }
 
   /**

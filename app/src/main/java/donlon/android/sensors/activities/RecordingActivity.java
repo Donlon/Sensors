@@ -12,12 +12,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -49,7 +49,6 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
   //UI Components
   private android.support.v7.app.ActionBar mActionBar;
-  private FloatingActionButton fabStart;
   private TextView tvSavePath;
   private TextView tvElapsedTime;
   private TextView tvStatus;
@@ -132,27 +131,6 @@ private boolean mFirstRecord = true;
   private void initializeUi(){
     setContentView(R.layout.recording_activity);
 
-    fabStart = findViewById(R.id.fabStart);
-    fabStart.setOnClickListener(new View.OnClickListener(){
-      @Override
-      public void onClick(View v){
-        if(recordingManager.isRecording()){
-          stopRecordingManager();
-          Toast.makeText(RecordingActivity.this,
-                  "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
-          tvSavePath.setTextColor(Color.RED);
-        }else{
-          if(!mFirstRecord){
-            recordingManager.init();//TODO: Add Reset btn?
-          }
-          startRecordingManager();
-          Toast.makeText(RecordingActivity.this,
-                  "RecordingManager started.", Toast.LENGTH_SHORT).show();
-          tvSavePath.setTextColor(colorTvSavePath);
-        }
-      }
-    });
-
     tvSavePath = findViewById(R.id.tvSavePath);
     tvElapsedTime = findViewById(R.id.tvElapsedTime);
     tvStatus = findViewById(R.id.tvStatus);
@@ -225,7 +203,7 @@ private boolean mFirstRecord = true;
                 "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
       }
     }
-    tvSavePath.setText("Saved Location" + mDataFilePath);
+    tvSavePath.setText("Saved Location: " + mDataFilePath);
   }
 
   private String buildDataFilePath(){
@@ -258,10 +236,12 @@ private boolean mFirstRecord = true;
   private void startRecording(){//won't call RecordingManager
     tvStatus.setText(R.string.status_recording);
     tvStatus.setTextColor(Color.RED);
+    keepScreenLongLight(true);
   }
 
   private void stopRecordingManager(){
     if(recordingManager.isRecording()){
+      keepScreenLongLight(false);
       recordingManager.stopRecording();
 //      tvCpuUsage.removeCallbacks(mCpuUsageUpdateRunnable);
     }
@@ -316,7 +296,25 @@ private boolean mFirstRecord = true;
   public boolean onOptionsItemSelected(MenuItem item){
     switch(item.getItemId()){
       case R.id.set_storage_folder:
+        break;
       case R.id.set_delay:
+        break;
+      case R.id.start_or_stop:
+        if(recordingManager.isRecording()){
+        stopRecordingManager();
+        Toast.makeText(RecordingActivity.this,
+                "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
+        tvSavePath.setTextColor(Color.RED);
+      }else{
+        if(!mFirstRecord){
+          recordingManager.init();//TODO: Add Reset btn?
+        }
+        startRecordingManager();
+        Toast.makeText(RecordingActivity.this,
+                "RecordingManager started.", Toast.LENGTH_SHORT).show();
+        tvSavePath.setTextColor(colorTvSavePath);
+      }
+        break;
       case android.R.id.home: // back button
         finish();
         break;
@@ -324,6 +322,14 @@ private boolean mFirstRecord = true;
         break;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  public void keepScreenLongLight(boolean isOpenLight) {
+    if (isOpenLight) {
+      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    } else {
+      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
   }
 
   public class RecordingManagerWidgetsEditor{

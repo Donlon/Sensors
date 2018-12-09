@@ -149,6 +149,7 @@ public class DataFileWriter{
 
       //Each data group
       for(Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()){
+        //FixMe: write non-null sensor only
         frameBufferOS.writeInt(entry.getKey().id);
         frameBufferOS.writeInt(entry.getValue().size());
 

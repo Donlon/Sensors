@@ -15,6 +15,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import donlon.android.sensors.activities.MainActivity;
+import donlon.android.sensors.utils.MathUtils;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorsListAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, SensorEventCallback{
@@ -84,6 +86,9 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
     widgets.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
 
     if(sensor.dataDimension == 3){
+      if(sensor.is3DData()){
+        widgets.tvDataPrefix.setText(R.string.data_prefix_3d);
+      }
       widgets.tvDataPrefix.setText(R.string.data_prefix_3d);
     }else{
       widgets.tvDataPrefix.setVisibility(View.GONE);
@@ -107,6 +112,10 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
       if(i != sensor.dataDimension - 1){
         tmpStr.append("\n");
       }
+    }
+    if(sensor.is3DData()){
+      tmpStr.append("\n");
+      tmpStr.append(MathUtils.getA(event.values));
     }
     m_listWidgetsList.get(sensor.id).tvData.setText(tmpStr.toString());
   }
