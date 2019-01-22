@@ -5,49 +5,49 @@ import android.hardware.SensorEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SensorEventsBuffer{
+public class SensorEventsBuffer {
   private List<SensorEventAggregation> mBuffer;
   private int mCurrentPosition;
 
-  public SensorEventsBuffer(int dataDimension){
+  public SensorEventsBuffer(int dataDimension) {
     this(100, dataDimension);
   }
 
-  public SensorEventsBuffer(int initialCapacity, int dataDimension){
+  public SensorEventsBuffer(int initialCapacity, int dataDimension) {
     mBuffer = new ArrayList<>(initialCapacity);
     int d = initialCapacity;
-    while(d-- > 0){
+    while (d-- > 0) {
       mBuffer.add(new SensorEventAggregation(dataDimension));
     }
     mCurrentPosition = 0;
   }
 
-  public void add(SensorEvent event){
+  public void add(SensorEvent event) {
     add(event.values, event.accuracy, event.timestamp);
   }
 
-  public void add(float values[], float accuracy, long timeStamp){
-    if(mCurrentPosition < mBuffer.size()){
+  public void add(float values[], float accuracy, long timeStamp) {
+    if (mCurrentPosition < mBuffer.size()) {
       mBuffer.get(mCurrentPosition++).set(values, accuracy, timeStamp);
-    }else{
+    } else {
       mBuffer.add(new SensorEventAggregation(values, accuracy, timeStamp));
       mCurrentPosition++;
     }
   }
 
-  public SensorEventAggregation get(int i){
+  public SensorEventAggregation get(int i) {
     return mBuffer.get(i);
   }
 
-  public void clear(){
+  public void clear() {
     mCurrentPosition = 0;
   }
 
-  public boolean isEmpty(){
+  public boolean isEmpty() {
     return mCurrentPosition == 0;
   }
 
-  public int size(){
+  public int size() {
     return mCurrentPosition;
   }
 }

@@ -42,23 +42,16 @@ public class SensorDataView extends View {
 
   private void init(AttributeSet attrs, int defStyle) {
     // Load attributes
-    final TypedArray a = getContext().obtainStyledAttributes(
-            attrs, R.styleable.SensorDataView, defStyle, 0);
+    final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.SensorDataView, defStyle, 0);
 
-    mExampleString = a.getString(
-            R.styleable.SensorDataView_exampleString);
-    mExampleColor = a.getColor(
-            R.styleable.SensorDataView_exampleColor,
-            mExampleColor);
+    mExampleString = a.getString(R.styleable.SensorDataView_exampleString);
+    mExampleColor = a.getColor(R.styleable.SensorDataView_exampleColor, mExampleColor);
     // Use getDimensionPixelSize or getDimensionPixelOffset when dealing with
     // values that should fall on pixel boundaries.
-    mExampleDimension = a.getDimension(
-            R.styleable.SensorDataView_exampleDimension,
-            mExampleDimension);
+    mExampleDimension = a.getDimension(R.styleable.SensorDataView_exampleDimension, mExampleDimension);
 
     if (a.hasValue(R.styleable.SensorDataView_exampleDrawable)) {
-      mExampleDrawable = a.getDrawable(
-              R.styleable.SensorDataView_exampleDrawable);
+      mExampleDrawable = a.getDrawable(R.styleable.SensorDataView_exampleDrawable);
       mExampleDrawable.setCallback(this);
     }
 
@@ -97,15 +90,11 @@ public class SensorDataView extends View {
     int contentHeight = getHeight() - paddingTop - paddingBottom;
 
     // Draw the text.
-    canvas.drawText(mExampleString,
-            paddingLeft + (contentWidth - mTextWidth) / 2,
-            paddingTop + (contentHeight + mTextHeight) / 2,
-            mTextPaint);
+    canvas.drawText(mExampleString, paddingLeft + (contentWidth - mTextWidth) / 2, paddingTop + (contentHeight + mTextHeight) / 2, mTextPaint);
 
     // Draw the example drawable on top of the text.
     if (mExampleDrawable != null) {
-      mExampleDrawable.setBounds(paddingLeft, paddingTop,
-              paddingLeft + contentWidth, paddingTop + contentHeight);
+      mExampleDrawable.setBounds(paddingLeft, paddingTop, paddingLeft + contentWidth, paddingTop + contentHeight);
       mExampleDrawable.draw(canvas);
     }
   }

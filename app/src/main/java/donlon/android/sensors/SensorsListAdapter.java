@@ -15,50 +15,48 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import donlon.android.sensors.activities.MainActivity;
 import donlon.android.sensors.utils.MathUtils;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorsListAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, SensorEventCallback{
+public class SensorsListAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, SensorEventCallback {
   private Context m_context;
   private List<CustomSensor> m_sensorList;
   private List<SensorListWidgets> m_listWidgetsList;//TODO: use map fashion
   private ListView m_correlatedView;
 
-  public SensorsListAdapter(Context context, ListView correlatedView, List<CustomSensor> sensorList){
+  public SensorsListAdapter(Context context, ListView correlatedView, List<CustomSensor> sensorList) {
     m_context = context;
     m_sensorList = sensorList;
     m_correlatedView = correlatedView;
     initSubViews();
   }
 
-
   @Override
-  public int getCount(){
+  public int getCount() {
     return m_sensorList.size();
   }
 
   @Override
-  public CustomSensor getItem(int position){
+  public CustomSensor getItem(int position) {
     return m_sensorList.get(position);
   }
 
   @Override
-  public long getItemId(int position){
+  public long getItemId(int position) {
     return position;
   }
 
   @Override
-  public View getView(int position, View convertView, ViewGroup parent){
+  public View getView(int position, View convertView, ViewGroup parent) {
     /*if(convertView != null){
       return convertView;
     }*/
     return m_listWidgetsList.get(position).view;
   }
 
-  private void initSubViews(){
+  private void initSubViews() {
     m_listWidgetsList = new ArrayList<>();
-    for(CustomSensor sensor : m_sensorList){
+    for (CustomSensor sensor : m_sensorList) {
       SensorListWidgets widgets = new SensorListWidgets();
 
       widgets.view = LayoutInflater.from(m_context).inflate(R.layout.sensors_preview_list_entry, m_correlatedView, false);
@@ -80,17 +78,17 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
     }
   }
 
-  private void setStarterText(SensorListWidgets widgets, CustomSensor sensor){
+  private void setStarterText(SensorListWidgets widgets, CustomSensor sensor) {
     widgets.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getSensorObject().getType()));
     widgets.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType()));
     widgets.tvUnit.setText(SensorUtils.getDataUnit(sensor.getSensorObject().getType()));
 
-    if(sensor.dataDimension == 3){
-      if(sensor.is3DData()){
+    if (sensor.dataDimension == 3) {
+      if (sensor.is3DData()) {
         widgets.tvDataPrefix.setText(R.string.data_prefix_3d);
       }
       widgets.tvDataPrefix.setText(R.string.data_prefix_3d);
-    }else{
+    } else {
       widgets.tvDataPrefix.setVisibility(View.GONE);
     }
   }
@@ -99,21 +97,21 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
    * Callback from Sensor SensorManager
    *
    * @param sensor sensor
-   * @param event event
+   * @param event  event
    */
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event){
-    if(sensor.dataDimension == 0){
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
+    if (sensor.dataDimension == 0) {
       return;
     }
     StringBuilder tmpStr = new StringBuilder();
-    for(int i = 0; i < sensor.dataDimension; i++){
+    for (int i = 0; i < sensor.dataDimension; i++) {
       tmpStr.append(String.valueOf(event.values[i]));
-      if(i != sensor.dataDimension - 1){
+      if (i != sensor.dataDimension - 1) {
         tmpStr.append("\n");
       }
     }
-    if(sensor.is3DData()){
+    if (sensor.is3DData()) {
       tmpStr.append("\n");
       tmpStr.append(MathUtils.getA(event.values));
     }
@@ -123,16 +121,16 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
   //TODO: clean codes below.
   private OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
 
-  public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener){
+  public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener) {
     mOnCbxCheckedListener = listener;
   }
 
   @Override
-  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
+  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     int pos = 0;
-    for(SensorListWidgets w : m_listWidgetsList){
-      if(w.cbxEnabled == buttonView){
-        if(mOnCbxCheckedListener != null){
+    for (SensorListWidgets w : m_listWidgetsList) {
+      if (w.cbxEnabled == buttonView) {
+        if (mOnCbxCheckedListener != null) {
           mOnCbxCheckedListener.OnSensorsListCbxChecked(pos, isChecked);
           break;
         }
@@ -141,23 +139,23 @@ public class SensorsListAdapter extends BaseAdapter implements CompoundButton.On
     }
   }
 
-  public void enableAllCheckBoxes(){
-    for(SensorListWidgets w : m_listWidgetsList){
+  public void enableAllCheckBoxes() {
+    for (SensorListWidgets w : m_listWidgetsList) {
       w.cbxEnabled.setEnabled(true);
     }
   }
 
-  public void disableAllCheckBoxes(){
-    for(SensorListWidgets w : m_listWidgetsList){
+  public void disableAllCheckBoxes() {
+    for (SensorListWidgets w : m_listWidgetsList) {
       w.cbxEnabled.setEnabled(false);
     }
   }
 
-  public interface OnSensorsListCbxCheckedListener{
+  public interface OnSensorsListCbxCheckedListener {
     void OnSensorsListCbxChecked(int pos, boolean selected);
   }
 
-  public class SensorListWidgets{
+  public class SensorListWidgets {
     public View view;
     public TextView tvPrimaryName;
     public TextView tvSecondaryName;

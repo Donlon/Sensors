@@ -12,7 +12,7 @@ import donlon.android.sensors.utils.SensorUtils;
 
   String data();
   String sensorInfo();*/
-public class CustomSensor{
+public class CustomSensor {
   public int id = -1;
   public String primaryName;
 
@@ -31,7 +31,7 @@ public class CustomSensor{
 
   private Sensor m_sensor;
 
-  public CustomSensor(Sensor sensor){
+  public CustomSensor(Sensor sensor) {
     m_sensor = sensor;
     dataDimension = SensorUtils.getSensorDataDimension(sensor.getType());
     m_dataUnitSuffix = " " + SensorUtils.getDataUnit(sensor.getType());
@@ -41,11 +41,11 @@ public class CustomSensor{
     LOG.d(primaryName);
   }
 
-  public Sensor getSensorObject(){
+  public Sensor getSensorObject() {
     return m_sensor;
   }
 
-  public boolean is3DData(){
+  public boolean is3DData() {
     return (flag & FLAG_3D_DATA) != 0;
   }
 }

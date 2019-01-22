@@ -9,7 +9,7 @@ import android.view.SurfaceView;
 
 import donlon.android.sensors.utils.LOG;
 
-public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.Callback,Runnable{
+public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
   private SurfaceHolder mHolder;
   private Canvas mCanvas;//绘图的画布
   private boolean mIsDrawing;//控制绘画线程的标志位
@@ -72,8 +72,7 @@ public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.
     } catch (Exception ignored) {
 
     } finally {
-      if (mCanvas != null)
-        mHolder.unlockCanvasAndPost(mCanvas);//保证每次都将绘图的内容提交
+      if (mCanvas != null) mHolder.unlockCanvasAndPost(mCanvas);//保证每次都将绘图的内容提交
     }
   }
 }

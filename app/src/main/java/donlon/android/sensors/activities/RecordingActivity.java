@@ -37,7 +37,7 @@ import donlon.android.sensors.utils.LOG;
 import donlon.android.sensors.utils.cpu.CpuUsage;
 import donlon.android.sensors.utils.cpu.CpuUsageImplement;
 
-public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener{
+public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener {
   private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
   private final static String SHARED_PREFERENCES_RECORDING_TIMES = "recording_times";
 
@@ -60,34 +60,34 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
   private RecordingManagerWidgetsEditor mCurrentScreenEditor;
 
-private boolean mFirstRecord = true;
+  private boolean mFirstRecord = true;
 
-  private Runnable mCpuUsageUpdateRunnable = new Runnable(){
+  private Runnable mCpuUsageUpdateRunnable = new Runnable() {
     private CpuUsage sysSummaryCpuUsage = CpuUsageImplement.createSysSummaryCpuUsage();
     private CpuUsage currentProcCpuUsage = CpuUsageImplement.createCurrentProcessCpuUsage();
     private float sysSummaryCpuUsageValue;
     private float currentProcCpuUsageValue;
     private DecimalFormat percentageFormatter = new DecimalFormat("##%");
-//    private char parity;
+
+    //    private char parity;
     @SuppressLint("SetTextI18n")
     @Override
-    public void run(){
-//      parity++;
+    public void run() {
+      //      parity++;
       sysSummaryCpuUsageValue = sysSummaryCpuUsage.requestCpuUsage();
       currentProcCpuUsageValue = currentProcCpuUsage.requestCpuUsage();
-      tvCpuUsage.setText(percentageFormatter.format(sysSummaryCpuUsageValue)
-              + "/" + percentageFormatter.format(currentProcCpuUsageValue));
+      tvCpuUsage.setText(percentageFormatter.format(sysSummaryCpuUsageValue) + "/" + percentageFormatter.format(currentProcCpuUsageValue));
 
-//      if(recordingManager.isRecording()){//TODO:
-        tvCpuUsage.postDelayed(this, 873);
-//      }
+      //      if(recordingManager.isRecording()){//TODO:
+      tvCpuUsage.postDelayed(this, 873);
+      //      }
     }
   };
   //Wondering why mHandler in class Activity can't be obtained...
   private Handler mHandler = new Handler();
 
   @Override
-  public void onCreate(Bundle savedInstanceState){
+  public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     LOG.i("Here we go!");
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
@@ -97,38 +97,26 @@ private boolean mFirstRecord = true;
 
     recordingManager.setOnRecordingFailedListener(this);
 
-    if(Build.VERSION.SDK_INT >= 23){
-      if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-              == PackageManager.PERMISSION_GRANTED &&
-              ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                      == PackageManager.PERMISSION_GRANTED){
+    if (Build.VERSION.SDK_INT >= 23) {
+      if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
         onPermissionGranted();
-      }else{
-        ActivityCompat.requestPermissions(
-                this,
-                new String[]{
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                },
-                PERMISSIONS_REQUEST_READ_AND_WRITE_FILES);
+      } else {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_AND_WRITE_FILES);
       }
-    }else{
+    } else {
       onPermissionGranted();
     }
   }
 
   @Override
-  public void onRequestPermissionsResult(
-          int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if(requestCode == PERMISSIONS_REQUEST_READ_AND_WRITE_FILES
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+    if (requestCode == PERMISSIONS_REQUEST_READ_AND_WRITE_FILES && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
       onPermissionGranted();
     }
   }
 
-  private void initializeUi(){
+  private void initializeUi() {
     setContentView(R.layout.recording_activity);
 
     tvSavePath = findViewById(R.id.tvSavePath);
@@ -143,7 +131,7 @@ private boolean mFirstRecord = true;
     colorTvSavePath = tvSavePath.getTextColors();
 
     mActionBar = getSupportActionBar();
-    if(mActionBar != null){
+    if (mActionBar != null) {
       mActionBar.setHomeButtonEnabled(true);
       mActionBar.setDisplayHomeAsUpEnabled(true);
     }
@@ -159,9 +147,8 @@ private boolean mFirstRecord = true;
 
     // Init TableLayout
     int count = 0;
-    for(CustomSensor sensor : recordingManager.getSensorsToRecord()){//TODO: when another moment?
-      View row = getLayoutInflater().inflate(R.layout.recording_activity_details_table_row,
-              tblSensorsInfo, false);
+    for (CustomSensor sensor : recordingManager.getSensorsToRecord()) {//TODO: when another moment?
+      View row = getLayoutInflater().inflate(R.layout.recording_activity_details_table_row, tblSensorsInfo, false);
 
       TextView tvName = row.findViewById(R.id.tvSensorName);
       tvName.setText(sensor.primaryName);
@@ -174,114 +161,105 @@ private boolean mFirstRecord = true;
     }
     TableRow rowAllSensors = findViewById(R.id.rowAllSensors);
 
-    if(recordingManager.getSensorsToRecord().size() == 1){
+    if (recordingManager.getSensorsToRecord().size() == 1) {
       rowAllSensors.setVisibility(View.GONE);
     }
     //Still add "null" key for compatibility
     mCurrentScreenEditor.listTvLastHits.put(null, (TextView) findViewById(R.id.tvAllSensorsLastHits));
     mCurrentScreenEditor.listTvAllHits.put(null, (TextView) findViewById(R.id.tvAllSensorsAllHits));
 
-    if(recordingManager.isRecording()){
+    if (recordingManager.isRecording()) {
       recordingManager.setWidgetEditor(mCurrentScreenEditor);
       mCpuUsageUpdateRunnable.run();
     }
   }
 
-  private void onPermissionGranted(){
+  private void onPermissionGranted() {
     //following initializeUi()
-      //Start to init the manager
-    if(recordingManager.isRecording()){
+    //Start to init the manager
+    if (recordingManager.isRecording()) {
       mDataFilePath = recordingManager.getDataFilePath();
       startRecording();
-    }else{
+    } else {
       mDataFilePath = buildDataFilePath();
       recordingManager.setDataFilePath(mDataFilePath);
       recordingManager.init();
 
-      if(!recordingManager.initialized()){
-        Toast.makeText(this,
-                "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+      if (!recordingManager.initialized()) {
+        Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
       }
     }
     tvSavePath.setText("Saved Location: " + mDataFilePath);
   }
 
-  private String buildDataFilePath(){
+  private String buildDataFilePath() {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
 
-    return Environment.getExternalStorageDirectory()
-            + "/sensor_data_"
-            + sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0)
-            +"_"
-            + sdf.format(new Date())
-            + ".data";
+    return Environment.getExternalStorageDirectory() + "/sensor_data_" + sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + "_" + sdf.format(new Date()) + ".data";
   }
 
-  private void startRecordingManager(){
+  private void startRecordingManager() {
     mFirstRecord = false;
-    if(!recordingManager.initialized()){
-      Toast.makeText(RecordingActivity.this,
-              "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
-    }else{
+    if (!recordingManager.initialized()) {
+      Toast.makeText(RecordingActivity.this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+    } else {
       startRecording();
       recordingManager.startRecording();
 
       SharedPreferences.Editor editor = sharedPreferences.edit();
-      editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES,
-              sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + 1);
+      editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES, sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + 1);
       editor.apply();
     }
   }
 
-  private void startRecording(){//won't call RecordingManager
+  private void startRecording() {//won't call RecordingManager
     tvStatus.setText(R.string.status_recording);
     tvStatus.setTextColor(Color.RED);
     keepScreenLongLight(true);
   }
 
-  private void stopRecordingManager(){
-    if(recordingManager.isRecording()){
+  private void stopRecordingManager() {
+    if (recordingManager.isRecording()) {
       keepScreenLongLight(false);
       recordingManager.stopRecording();
-//      tvCpuUsage.removeCallbacks(mCpuUsageUpdateRunnable);
+      //      tvCpuUsage.removeCallbacks(mCpuUsageUpdateRunnable);
     }
   }
 
   @Override
-  public void onRecordingFailed(){
-    runOnUiThread(new Runnable(){
+  public void onRecordingFailed() {
+    runOnUiThread(new Runnable() {
       @Override
-      public void run(){
-        Toast.makeText(RecordingActivity.this,
-                "Recording failed.", Toast.LENGTH_SHORT).show();
+      public void run() {
+        Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  protected void onStop(){
+  protected void onStop() {
     super.onStop();
-    if(isFinishing()){
+    if (isFinishing()) {
       recordingManager.finish();
-    }else{
+    } else {
       LOG.i("RecordingActivity Stopped");
     }
   }
 
   @Override
-  protected void onPause(){
+  protected void onPause() {
     super.onPause();
     recordingManager.setWidgetEditor(null);//TODO: Must set free when appropriate
   }
 
   @Override
-  protected void onResume(){
+  protected void onResume() {
     super.onResume();
     recordingManager.setWidgetEditor(mCurrentScreenEditor);
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu){
+  public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.recording_activity_menu, menu);
     return true;
   }
@@ -293,27 +271,25 @@ private boolean mFirstRecord = true;
    * @return what should be returned
    */
   @Override
-  public boolean onOptionsItemSelected(MenuItem item){
-    switch(item.getItemId()){
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
       case R.id.set_storage_folder:
         break;
       case R.id.set_delay:
         break;
       case R.id.start_or_stop:
-        if(recordingManager.isRecording()){
-        stopRecordingManager();
-        Toast.makeText(RecordingActivity.this,
-                "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
-        tvSavePath.setTextColor(Color.RED);
-      }else{
-        if(!mFirstRecord){
-          recordingManager.init();//TODO: Add Reset btn?
+        if (recordingManager.isRecording()) {
+          stopRecordingManager();
+          Toast.makeText(RecordingActivity.this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
+          tvSavePath.setTextColor(Color.RED);
+        } else {
+          if (!mFirstRecord) {
+            recordingManager.init();//TODO: Add Reset btn?
+          }
+          startRecordingManager();
+          Toast.makeText(RecordingActivity.this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
+          tvSavePath.setTextColor(colorTvSavePath);
         }
-        startRecordingManager();
-        Toast.makeText(RecordingActivity.this,
-                "RecordingManager started.", Toast.LENGTH_SHORT).show();
-        tvSavePath.setTextColor(colorTvSavePath);
-      }
         break;
       case android.R.id.home: // back button
         finish();
@@ -332,7 +308,7 @@ private boolean mFirstRecord = true;
     }
   }
 
-  public class RecordingManagerWidgetsEditor{
+  public class RecordingManagerWidgetsEditor {
     public TextView tvElapsedTime;
     public TextView tvStatus;
     public TextView tvWrittenFrames;
@@ -341,15 +317,15 @@ private boolean mFirstRecord = true;
     public Map<CustomSensor, TextView> listTvAllHits;
     public ImageView ivWritingFlashLight;
 
-    public void runOnUiThread(Runnable runnable){
+    public void runOnUiThread(Runnable runnable) {
       mHandler.post(runnable);
     }
 
-    public void runOnUiThread(Runnable runnable, int delay){
+    public void runOnUiThread(Runnable runnable, int delay) {
       mHandler.postDelayed(runnable, delay);
     }
 
-    public void removeRunnable(Runnable runnable){
+    public void removeRunnable(Runnable runnable) {
       mHandler.removeCallbacks(runnable);
     }
   }

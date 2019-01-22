@@ -1,8 +1,8 @@
 package donlon.android.sensors;
 
-public class SensorManagerRunnable implements Runnable{
+public class SensorManagerRunnable implements Runnable {
   @Override
-  public void run(){
+  public void run() {
 
   }
 }

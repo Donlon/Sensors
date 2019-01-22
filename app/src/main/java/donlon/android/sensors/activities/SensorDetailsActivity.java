@@ -2,20 +2,22 @@ package donlon.android.sensors.activities;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.os.*;
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.*;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorEventCallback;
 import donlon.android.sensors.SensorsManager;
-import donlon.android.sensors.utils.SensorUtils;
 import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener{
+public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener {
   private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
 
   private SensorsManager sensorManager;
@@ -35,30 +37,30 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
 
   //TODO: recycling
   @Override
-  public void onCreate(Bundle savedInstanceState){
+  public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     initializeUi();
     initializeSensor();
     sensorManager.registerCallbackForSensor(mSensor, this);
     recordingManager = RecordingManager.getInstance();
 
-    new Thread(new Runnable(){
+    new Thread(new Runnable() {
       @Override
-      public void run(){
-        while(true){
-          try{
+      public void run() {
+        while (true) {
+          try {
             Thread.sleep(1000);
             final int v_eventHits = eventHits;
-            runOnUiThread(new Runnable(){
+            runOnUiThread(new Runnable() {
               @Override
-              public void run(){
+              public void run() {
                 mActionBar.setTitle("Hits per second: " + v_eventHits);
               }
             });
-            synchronized(eventHitsSync){
+            synchronized (eventHitsSync) {
               eventHits = 0;
             }
-          }catch(InterruptedException e){
+          } catch (InterruptedException e) {
             e.printStackTrace();
             break;
           }
@@ -67,7 +69,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     }).start();
   }
 
-  private void initializeUi(){
+  private void initializeUi() {
     setContentView(R.layout.sensor_details_activity);
 
     tvSensorPrimaryName = findViewById(R.id.tvSensorPrimaryName);
@@ -77,16 +79,16 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     tvValue_3 = findViewById(R.id.tvValue_3);
 
     mActionBar = getSupportActionBar();
-    if(mActionBar != null){
+    if (mActionBar != null) {
       mActionBar.setHomeButtonEnabled(true);
       mActionBar.setDisplayHomeAsUpEnabled(true);
     }
   }
 
-  private void initializeSensor(){
+  private void initializeSensor() {
     mSensorPos = getIntent().getIntExtra("SensorPos", -1);
     sensorManager = SensorsManager.getInstance();
-    if(mSensorPos >= sensorManager.getSensorList().size()){
+    if (mSensorPos >= sensorManager.getSensorList().size()) {
       LOG.printStack("Sensor position is unexpectedly wrong");
       finish();
       return;
@@ -98,7 +100,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     tvSensorPrimaryName.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
     tvSensorSecondaryName.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
 
-    switch(mSensor.dataDimension){
+    switch (mSensor.dataDimension) {
       case 1:
         tvValue_2.setVisibility(View.GONE);
       case 2:
@@ -117,13 +119,13 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   private final Object eventHitsSync = new Object();
 
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event){
-    synchronized(eventHitsSync){
+  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
+    synchronized (eventHitsSync) {
       eventHits++;
     }
     tvValue_1.setText(String.valueOf(event.values[0]));
 
-    switch(mSensor.dataDimension){
+    switch (mSensor.dataDimension) {
       case 3:
         tvValue_3.setText(String.valueOf(event.values[2]));
       case 2:
@@ -138,9 +140,9 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu){
+  public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
-    menuPause =  menu.findItem(R.id.menuPause);
+    menuPause = menu.findItem(R.id.menuPause);
     return true;
   }
 
@@ -153,12 +155,12 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
    * @return what should be returned
    */
   @Override
-  public boolean onOptionsItemSelected(MenuItem item){
-    switch(item.getItemId()){
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
       case R.id.menuPause:
-        if(mViewingPaused){
+        if (mViewingPaused) {
           resumeViewing();
-        }else{
+        } else {
           pauseViewing();
         }
         break;
@@ -177,18 +179,18 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     return super.onOptionsItemSelected(item);
   }
 
-  private void pauseViewing(){
+  private void pauseViewing() {
     menuPause.setTitle(R.string.start);
     mViewingPaused = true;
   }
 
-  private void resumeViewing(){
+  private void resumeViewing() {
     menuPause.setTitle(R.string.pause);
     mViewingPaused = false;
   }
 
   @Override
-  public void onRecordingCanceled(boolean succeed){
+  public void onRecordingCanceled(boolean succeed) {
     resumeViewing();
   }
 }

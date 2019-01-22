@@ -2,9 +2,9 @@ package donlon.android.sensors.utils;
 
 import android.hardware.Sensor;
 
-public class SensorUtils{
-  public static String getSensorNameByType(int type){
-    switch(type){
+public class SensorUtils {
+  public static String getSensorNameByType(int type) {
+    switch (type) {
       case Sensor.TYPE_ACCELEROMETER:
         return "加速度传感器";
       case Sensor.TYPE_ALL:
@@ -52,8 +52,8 @@ public class SensorUtils{
     }
   }
 
-  public static String getSensorEnglishNameByType(int type){
-    switch(type){
+  public static String getSensorEnglishNameByType(int type) {
+    switch (type) {
       case Sensor.TYPE_ACCELEROMETER:
         return "Accelerometer";
       case Sensor.TYPE_ALL:
@@ -101,8 +101,8 @@ public class SensorUtils{
     }
   }
 
-  public static String getDataUnit(int type){
-    switch(type){
+  public static String getDataUnit(int type) {
+    switch (type) {
       case Sensor.TYPE_GYROSCOPE:
         return "rad/s";
       case Sensor.TYPE_ACCELEROMETER:
@@ -131,8 +131,8 @@ public class SensorUtils{
     }
   }
 
-  public static int getSensorDataDimension(int type){
-    switch(type){
+  public static int getSensorDataDimension(int type) {
+    switch (type) {
       case Sensor.TYPE_ACCELEROMETER:
       case Sensor.TYPE_GRAVITY:
       case Sensor.TYPE_GYROSCOPE:
