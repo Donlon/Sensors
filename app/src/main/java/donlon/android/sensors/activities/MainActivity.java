@@ -64,8 +64,7 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
     setContentView(R.layout.main_activity);
     LOG.d("Start");
 
-    mSensorsListAdapter = new SensorsListAdapter(this, sensorsListView, mSensorsManager.getSensorList());
-    mSensorsListAdapter.setOnCbxCheckedListener(mSensorsManager);
+    mSensorsListAdapter = new SensorsListAdapter(this, mSensorController.getSensorList());
     sensorsListView = findViewById(R.id.lvSensors);
     updateSwitch = findViewById(R.id.swUpdate);
     fabMain = findViewById(R.id.fab_main);
