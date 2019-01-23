@@ -37,24 +37,16 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread thread, final Throwable throwable) {
-        throwable.printStackTrace();
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        throwable.printStackTrace(pw);
-        pw.flush();
-        final String s = sw.toString();
-        LOG.i(s);
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+      throwable.printStackTrace();
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      throwable.printStackTrace(pw);
+      pw.flush();
+      final String s = sw.toString();
+      LOG.i(s);
 
-        MainActivity.this.runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            new AlertDialog.Builder(MainActivity.this).setMessage(s).setTitle(throwable.getClass().getName()).show();
-          }
-        });
-      }
+      runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this).setMessage(s).setTitle(throwable.getClass().getName()).show());
     });
 
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
@@ -81,13 +73,10 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
     sensorsListView.setOnItemClickListener(listViewClickListener);
     sensorsListView.setAdapter(mSensorsListAdapter);
     updateSwitch.setOnCheckedChangeListener(onUpdateSwitchListener);
-    fabMain.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        saveUpdateSwitchState();
-        mIsOpeningRecordingActivity = true;
-        mRecordingManager.showStarterDialog(MainActivity.this);
-      }
+    fabMain.setOnClickListener(v -> {
+      saveUpdateSwitchState();
+      mIsOpeningRecordingActivity = true;
+      mRecordingManager.showStarterDialog(MainActivity.this);
     });
     mRecordingManager.setOnRecordingCanceledListener(this);
   }
@@ -170,12 +159,7 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
   /**
    * Listener
    */
-  private AdapterView.OnItemClickListener listViewClickListener = new AdapterView.OnItemClickListener() {
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      startSensorDetailsActivity(position);
-    }
-  };
+  private AdapterView.OnItemClickListener listViewClickListener = (parent, view, position, id) -> startSensorDetailsActivity(position);
 
   private void startSensorDetailsActivity(int position) {
     Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);

@@ -82,11 +82,13 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
   private Map<Sensor, CallbackPair> mCallbacksSet;
 
   public void registerCallbackForSensor(@NonNull CustomSensor sensor, SensorEventCallback callback) {
-    if (mCallbacksSet.containsKey(sensor.getSensorObject())) {
-      mCallbacksSet.get(sensor.getSensorObject()).callback = callback;
+    Sensor _sensor = sensor.getSensorObject();
+    SensorsManager.CallbackPair _callback = mCallbacksSet.get(_sensor);
+    if (_callback != null) {
+      _callback.callback = callback;
     } else {
-      mCallbacksSet.put(sensor.getSensorObject(), new CallbackPair(sensor, callback));
-      mSysSensorManager.registerListener(mSensorListener, sensor.getSensorObject(), mPreviewDelay);
+      mCallbacksSet.put(_sensor, new CallbackPair(sensor, callback));
+      mSysSensorManager.registerListener(mSensorListener, _sensor, mPreviewDelay);
     }
   }
 

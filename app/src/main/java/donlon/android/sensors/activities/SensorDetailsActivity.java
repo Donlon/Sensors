@@ -44,26 +44,18 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     sensorManager.registerCallbackForSensor(mSensor, this);
     recordingManager = RecordingManager.getInstance();
 
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (true) {
-          try {
-            Thread.sleep(1000);
-            final int v_eventHits = eventHits;
-            runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                mActionBar.setTitle("Hits per second: " + v_eventHits);
-              }
-            });
-            synchronized (eventHitsSync) {
-              eventHits = 0;
-            }
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-            break;
+    new Thread(() -> {
+      while (true) {
+        try {
+          Thread.sleep(1000);
+          final int v_eventHits = eventHits;
+          runOnUiThread(() -> mActionBar.setTitle("Hits per second: " + v_eventHits));
+          synchronized (eventHitsSync) {
+            eventHits = 0;
           }
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+          break;
         }
       }
     }).start();

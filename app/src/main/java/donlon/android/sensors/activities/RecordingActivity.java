@@ -156,8 +156,8 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       tvId.setText(String.valueOf(sensor.id));
 
       tblSensorsInfo.addView(row, ++count);
-      mCurrentScreenEditor.listTvLastHits.put(sensor, (TextView) row.findViewById(R.id.tvLastHits));
-      mCurrentScreenEditor.listTvAllHits.put(sensor, (TextView) row.findViewById(R.id.tvAllHits));
+      mCurrentScreenEditor.listTvLastHits.put(sensor, row.findViewById(R.id.tvLastHits));
+      mCurrentScreenEditor.listTvAllHits.put(sensor, row.findViewById(R.id.tvAllHits));
     }
     TableRow rowAllSensors = findViewById(R.id.rowAllSensors);
 
@@ -165,8 +165,8 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       rowAllSensors.setVisibility(View.GONE);
     }
     //Still add "null" key for compatibility
-    mCurrentScreenEditor.listTvLastHits.put(null, (TextView) findViewById(R.id.tvAllSensorsLastHits));
-    mCurrentScreenEditor.listTvAllHits.put(null, (TextView) findViewById(R.id.tvAllSensorsAllHits));
+    mCurrentScreenEditor.listTvLastHits.put(null, findViewById(R.id.tvAllSensorsLastHits));
+    mCurrentScreenEditor.listTvAllHits.put(null, findViewById(R.id.tvAllSensorsAllHits));
 
     if (recordingManager.isRecording()) {
       recordingManager.setWidgetEditor(mCurrentScreenEditor);
@@ -228,12 +228,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
   @Override
   public void onRecordingFailed() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show();
-      }
-    });
+    runOnUiThread(() -> Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show());
   }
 
   @Override
