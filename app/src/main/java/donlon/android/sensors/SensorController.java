@@ -14,14 +14,13 @@ import java.util.Map;
 
 import donlon.android.sensors.utils.LOG;
 
-public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxCheckedListener {
+public class SensorController {
   private List<CustomSensor> mSensorList;
   private SensorManager mSysSensorManager;
 
-  private int mPreviewDelay = SensorManager.SENSOR_DELAY_FASTEST;
-  //  private int mPreviewDelay = SensorManager.SENSOR_DELAY_NORMAL;
+  private static final int DEFAULT_PREVIEW_DELAY = SensorManager.SENSOR_DELAY_FASTEST;
 
-  private SensorsManager(Context context) {
+  private SensorController(Context context) {
     mSysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
     List<Sensor> allSensor;
@@ -63,16 +62,16 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
    * @param context context
    * @return instance created
    */
-  public static SensorsManager create(Context context) {
-    return singleTonInstance = new SensorsManager(context);
+  public static SensorController create(Context context) {
+    return singleTonInstance = new SensorController(context);
   }
 
   /**
    * SingleTon instance
    */
-  private static SensorsManager singleTonInstance;
+  private static SensorController singleTonInstance;
 
-  public static /*synchronized */SensorsManager getInstance() {
+  public static /*synchronized */SensorController getInstance() {
     if (null == singleTonInstance) {
       LOG.printStack("");
     }
@@ -83,12 +82,12 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
 
   public void registerCallbackForSensor(@NonNull CustomSensor sensor, SensorEventCallback callback) {
     Sensor _sensor = sensor.getSensorObject();
-    SensorsManager.CallbackPair _callback = mCallbacksSet.get(_sensor);
+    SensorController.CallbackPair _callback = mCallbacksSet.get(_sensor);
     if (_callback != null) {
       _callback.callback = callback;
     } else {
       mCallbacksSet.put(_sensor, new CallbackPair(sensor, callback));
-      mSysSensorManager.registerListener(mSensorListener, _sensor, mPreviewDelay);
+      mSysSensorManager.registerListener(mSensorListener, _sensor, DEFAULT_PREVIEW_DELAY);
     }
   }
 
@@ -143,19 +142,4 @@ public class SensorsManager implements SensorsListAdapter.OnSensorsListCbxChecke
     return mSensorList;
   }
 
-  @Override
-  public void OnSensorsListCbxChecked(int pos, boolean selected) {
-    /*CustomSensor sensor = mSensorList.get(pos);
-
-    if(sensor.state == SensorStates.Previewing && !selected){
-      mSysSensorManager.unregisterListener(sensor.listener);
-      sensor.state = SensorStates.Resting;
-    }else if(sensor.state == SensorStates.Resting && selected){
-      mSysSensorManager.registerListener(sensor.listener, sensor.getSensorObject(),
-              mPreviewDelay);
-      sensor.state = SensorStates.Previewing;
-    }else{
-      LOG.printStack("Unexpected branch");
-    }*/
-  }
 }

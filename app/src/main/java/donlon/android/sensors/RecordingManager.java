@@ -23,7 +23,7 @@ public class RecordingManager implements SensorEventCallback {
   //  private Context mContext;
   public static final int RECORDING_ACTIVITY_REQUEST_CODE = 0xF401;
 
-  private SensorsManager mSensorsManager;
+  private SensorController mSensorController;
   private String[] sensorNameList;
   private Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;
   private Map<CustomSensor, SensorEventCounter> mSensorEventHitsCountsMap;// TODO: try AtomicInteger?
@@ -37,15 +37,15 @@ public class RecordingManager implements SensorEventCallback {
   private Set<CustomSensor> sensorsToRecord;
   private Set<CustomSensor> selectedSensors;
 
-  private RecordingManager(SensorsManager sensorsManager) {
-    mSensorsManager = sensorsManager;
+  private RecordingManager(SensorController sensorController) {
+    mSensorController = sensorController;
     sensorsToRecord = new ArraySet<>();
     selectedSensors = new ArraySet<>();
-    selectedSensorsArray = new boolean[mSensorsManager.getSensorList().size() + 1];
-    sensorNameList = new String[sensorsManager.getSensorList().size() + 1];
+    selectedSensorsArray = new boolean[mSensorController.getSensorList().size() + 1];
+    sensorNameList = new String[sensorController.getSensorList().size() + 1];
     sensorNameList[0] = "All Sensors";//TODO: i18n
     int i = 0;
-    for (CustomSensor sensor : sensorsManager.getSensorList()) {
+    for (CustomSensor sensor : sensorController.getSensorList()) {
       sensorNameList[++i] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
     }
     mIsRecording = false;
@@ -57,8 +57,8 @@ public class RecordingManager implements SensorEventCallback {
    *
    * @return instance created
    */
-  public static RecordingManager create(SensorsManager sensorsManager) {
-    return singleTonInstance = new RecordingManager(sensorsManager);
+  public static RecordingManager create(SensorController sensorController) {
+    return singleTonInstance = new RecordingManager(sensorController);
   }
 
   /**
@@ -75,7 +75,7 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   private DataFileWriter mDataFileWriter;
-  private RecordingActivity.RecordingManagerWidgetsEditor mWidgetsEditor;
+  private RecordingActivity.RecordingDashBoardViewHolder mWidgetsEditor;
 
   public void setDataFilePath(String path) {
     mDataFilePath = path;
@@ -105,7 +105,7 @@ public class RecordingManager implements SensorEventCallback {
     }
   }
 
-  public void setWidgetEditor(RecordingActivity.RecordingManagerWidgetsEditor widgetsEditor) {
+  public void setWidgetEditor(RecordingActivity.RecordingDashBoardViewHolder widgetsEditor) {
     //    if(widgetsEditor == null){
     if (mWidgetsEditor != null) {
       mWidgetsEditor.removeRunnable(uiTimeUpdateRunnable);
@@ -120,10 +120,10 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public void startRecording() {
-    mSensorsManager.clearCallbacksForAllSensors();
+    mSensorController.clearCallbacksForAllSensors();
 
     for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
-      mSensorsManager.registerCallbackForSensor(entry.getKey(), this);
+      mSensorController.registerCallbackForSensor(entry.getKey(), this);
     }
 
     mIsRecording = true;
@@ -147,7 +147,7 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public void stopRecording() {
-    mSensorsManager.clearCallbacksForAllSensors();
+    mSensorController.clearCallbacksForAllSensors();
     mDataWritingThread.interrupt();//TODO: use "stop?"
     try {
       mDataFileWriter.closeFile();
@@ -345,17 +345,17 @@ public class RecordingManager implements SensorEventCallback {
               ((AlertDialog) dialog).getListView().setItemChecked(i, isChecked);
               selectedSensorsArray[i] = isChecked;
               if (isChecked) {
-                selectedSensors.add(mSensorsManager.getSensorList().get(i - 1));//TODO: not advanced enough?
+                selectedSensors.add(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
               } else {
-                selectedSensors.remove(mSensorsManager.getSensorList().get(i - 1));//TODO: not advanced enough?
+                selectedSensors.remove(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
               }
             }
           }
         } else {
           if (isChecked) {
-            selectedSensors.add(mSensorsManager.getSensorList().get(which - 1));//TODO: not advanced enough?
+            selectedSensors.add(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
           } else {
-            selectedSensors.remove(mSensorsManager.getSensorList().get(which - 1));//TODO: not advanced enough?
+            selectedSensors.remove(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
           }
 
           if (selectedSensorsArray[0]) {//all was selected & indicating that isChecked==true

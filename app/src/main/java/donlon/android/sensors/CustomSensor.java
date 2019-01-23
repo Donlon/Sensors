@@ -2,6 +2,7 @@ package donlon.android.sensors;
 
 import android.hardware.Sensor;
 
+import donlon.android.sensors.adapters.SensorsListAdapter;
 import donlon.android.sensors.utils.LOG;
 import donlon.android.sensors.utils.SensorUtils;
 
@@ -21,7 +22,7 @@ public class CustomSensor {
 
   private String m_dataUnitSuffix;
 
-  public SensorsListAdapter.SensorListWidgets correlatedPreviewingListWidgets;
+  public SensorsListAdapter.SensorListViewHolder correlatedPreviewingListWidgets;
 
   public int dataDimension;
 

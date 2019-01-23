@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ListView;
@@ -18,14 +17,14 @@ import java.io.StringWriter;
 
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
-import donlon.android.sensors.SensorsListAdapter;
-import donlon.android.sensors.SensorsManager;
+import donlon.android.sensors.SensorController;
+import donlon.android.sensors.adapters.SensorsListAdapter;
 import donlon.android.sensors.utils.LOG;
 
 public class MainActivity extends AppCompatActivity implements RecordingManager.OnRecordingCanceledListener {
 
   private SharedPreferences sharedPreferences;
-  public SensorsManager mSensorsManager;
+  public SensorController mSensorController;
   private SensorsListAdapter mSensorsListAdapter;
   private RecordingManager mRecordingManager;
 
@@ -46,18 +45,18 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
       final String s = sw.toString();
       LOG.i(s);
 
-      runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this).setMessage(s).setTitle(throwable.getClass().getName()).show());
+      runOnUiThread(() -> new AlertDialog.Builder(getApplicationContext()).setMessage(s).setTitle(throwable.getClass().getName()).show());
     });
 
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
 
     //    mCheckBtnLastChecked = savedInstanceState.getBoolean("updating_btn_checked", true);
     LOG.d("Here we go!");
-    mSensorsManager = SensorsManager.create(this);
-    mRecordingManager = RecordingManager.create(mSensorsManager);
+    mSensorController = SensorController.create(this);
+    mRecordingManager = RecordingManager.create(mSensorController);
     initializeUi();
 
-    mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
+    mSensorController.registerCallbacksForAllSensors(mSensorsListAdapter);
   }
 
   private void initializeUi() {
@@ -146,10 +145,10 @@ public class MainActivity extends AppCompatActivity implements RecordingManager.
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
       if (isChecked) {
-        mSensorsManager.registerCallbacksForAllSensors(mSensorsListAdapter);
+        mSensorController.registerCallbacksForAllSensors(mSensorsListAdapter);
         mSensorsListAdapter.enableAllCheckBoxes();
       } else {
-        mSensorsManager.clearCallbacksForAllSensors();
+        mSensorController.clearCallbacksForAllSensors();
         mSensorsListAdapter.disableAllCheckBoxes();
       }
     }

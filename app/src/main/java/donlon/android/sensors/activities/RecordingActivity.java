@@ -58,7 +58,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private ImageView ivWritingFlashLight;
   private TableLayout tblSensorsInfo;
 
-  private RecordingManagerWidgetsEditor mCurrentScreenEditor;
+  private RecordingDashBoardViewHolder mCurrentScreenEditor;
 
   private boolean mFirstRecord = true;
 
@@ -136,7 +136,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       mActionBar.setDisplayHomeAsUpEnabled(true);
     }
 
-    mCurrentScreenEditor = new RecordingManagerWidgetsEditor();
+    mCurrentScreenEditor = new RecordingDashBoardViewHolder();
     mCurrentScreenEditor.tvElapsedTime = tvElapsedTime;
     mCurrentScreenEditor.tvStatus = tvStatus;
     mCurrentScreenEditor.tvWrittenFrames = tvWrittenFrames;
@@ -175,8 +175,8 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   }
 
   private void onPermissionGranted() {
-    //following initializeUi()
-    //Start to init the manager
+    // following initializeUi()
+    // Start to init the manager
     if (recordingManager.isRecording()) {
       mDataFilePath = recordingManager.getDataFilePath();
       startRecording();
@@ -303,7 +303,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     }
   }
 
-  public class RecordingManagerWidgetsEditor {
+  public class RecordingDashBoardViewHolder {
     public TextView tvElapsedTime;
     public TextView tvStatus;
     public TextView tvWrittenFrames;

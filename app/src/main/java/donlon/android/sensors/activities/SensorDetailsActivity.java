@@ -12,15 +12,15 @@ import android.widget.TextView;
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
+import donlon.android.sensors.SensorController;
 import donlon.android.sensors.SensorEventCallback;
-import donlon.android.sensors.SensorsManager;
 import donlon.android.sensors.utils.LOG;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener {
   private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
 
-  private SensorsManager sensorManager;
+  private SensorController sensorManager;
   private RecordingManager recordingManager;
 
   private int mSensorPos;
@@ -79,7 +79,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
 
   private void initializeSensor() {
     mSensorPos = getIntent().getIntExtra("SensorPos", -1);
-    sensorManager = SensorsManager.getInstance();
+    sensorManager = SensorController.getInstance();
     if (mSensorPos >= sensorManager.getSensorList().size()) {
       LOG.printStack("Sensor position is unexpectedly wrong");
       finish();
