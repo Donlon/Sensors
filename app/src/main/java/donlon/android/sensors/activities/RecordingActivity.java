@@ -33,9 +33,10 @@ import java.util.Map;
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
-import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.cpu.CpuUsage;
-import donlon.android.sensors.utils.cpu.CpuUsageImplement;
+import donlon.android.sensors.utils.cpu.SingleProcessCpuUsage;
+import donlon.android.sensors.utils.cpu.SummaryCpuUsage;
 
 public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener {
   private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
@@ -63,8 +64,8 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private boolean mFirstRecord = true;
 
   private Runnable mCpuUsageUpdateRunnable = new Runnable() {
-    private CpuUsage sysSummaryCpuUsage = CpuUsageImplement.createSysSummaryCpuUsage();
-    private CpuUsage currentProcCpuUsage = CpuUsageImplement.createCurrentProcessCpuUsage();
+    private CpuUsage sysSummaryCpuUsage = new SummaryCpuUsage();
+    private CpuUsage currentProcCpuUsage = new SingleProcessCpuUsage();
     private float sysSummaryCpuUsageValue;
     private float currentProcCpuUsageValue;
     private DecimalFormat percentageFormatter = new DecimalFormat("##%");
@@ -89,7 +90,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    LOG.i("Here we go!");
+    Logger.i("Here we go!");
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
     recordingManager = RecordingManager.getInstance();
     initializeUi();
@@ -237,7 +238,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     if (isFinishing()) {
       recordingManager.finish();
     } else {
-      LOG.i("RecordingActivity Stopped");
+      Logger.i("RecordingActivity Stopped");
     }
   }
 

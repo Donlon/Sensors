@@ -23,33 +23,19 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
   public SensorsListAdapter(Context context, List<CustomSensor> sensorList) {
     super(context, R.layout.sensors_preview_list_entry, sensorList);
 
-    super.setViewHolderCreator(this::onCreateViewHolder);
+    super.setViewHolderCreator(SensorListViewHolder::new);
     super.setViewBinder(this::bindData);
     super.createViews();
   }
 
-  private SensorListViewHolder onCreateViewHolder(int position, View rootView) {
-    SensorListViewHolder holder = new SensorListViewHolder(position, rootView);
-    holder.view = rootView;
-    holder.tvPrimaryName = rootView.findViewById(R.id.tvSensorPrimaryName);
-    holder.tvSecondaryName = rootView.findViewById(R.id.tvSensorSecondaryName);
-    holder.tvInfo = rootView.findViewById(R.id.tvSensorInfo);
-    holder.tvData = rootView.findViewById(R.id.tvSensorData);
-    holder.tvDataPrefix = rootView.findViewById(R.id.tvSensorDataPrefix);
-    holder.tvUnit = rootView.findViewById(R.id.tvSensorDataUnit);
-    holder.layoutRight = rootView.findViewById(R.id.layoutRight);
-    holder.cbxEnabled = rootView.findViewById(R.id.cbxEnabled);
-    return holder;
-  }
-
   private void bindData(int position, SensorListViewHolder viewHolder, CustomSensor data) {
-    Sensor sensor = data.getSensorObject();
+    Sensor sensor = data.getSensor();
     viewHolder.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getType()));
     viewHolder.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getType()));
     viewHolder.tvUnit.setText(SensorUtils.getDataUnit(sensor.getType()));
 
     if (data.dataDimension == 3) {
-      if (data.is3DData()) {
+      if (data.is3dData()) {
         viewHolder.tvDataPrefix.setText(R.string.data_prefix_3d);
       }
       viewHolder.tvDataPrefix.setText(R.string.data_prefix_3d);
@@ -76,7 +62,7 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
         tmpStr.append("\n");
       }
     }
-    if (sensor.is3DData()) {
+    if (sensor.is3dData()) {
       tmpStr.append("\n");
       tmpStr.append(MathUtils.getA(event.values));
     }
@@ -129,8 +115,16 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
     public CheckBox cbxEnabled;
     public LinearLayout layoutRight;
 
-    public SensorListViewHolder(int position, View view) {
-      super(position, view);
+    public SensorListViewHolder(int position, View rootView) {
+      super(position, rootView);
+      tvPrimaryName = rootView.findViewById(R.id.tvSensorPrimaryName);
+      tvSecondaryName = rootView.findViewById(R.id.tvSensorSecondaryName);
+      tvInfo = rootView.findViewById(R.id.tvSensorInfo);
+      tvData = rootView.findViewById(R.id.tvSensorData);
+      tvDataPrefix = rootView.findViewById(R.id.tvSensorDataPrefix);
+      tvUnit = rootView.findViewById(R.id.tvSensorDataUnit);
+      layoutRight = rootView.findViewById(R.id.layoutRight);
+      cbxEnabled = rootView.findViewById(R.id.cbxEnabled);
     }
   }
 }

@@ -1,7 +1,6 @@
 package donlon.android.sensors;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.SensorEvent;
 import android.support.v7.app.AlertDialog;
@@ -15,7 +14,7 @@ import java.util.Set;
 
 import donlon.android.sensors.activities.RecordingActivity;
 import donlon.android.sensors.utils.DataFileWriter;
-import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorEventsBuffer;
 import donlon.android.sensors.utils.SensorUtils;
 
@@ -46,7 +45,7 @@ public class RecordingManager implements SensorEventCallback {
     sensorNameList[0] = "All Sensors";//TODO: i18n
     int i = 0;
     for (CustomSensor sensor : sensorController.getSensorList()) {
-      sensorNameList[++i] = SensorUtils.getSensorEnglishNameByType(sensor.getSensorObject().getType());
+      sensorNameList[++i] = SensorUtils.getSensorEnglishNameByType(sensor.getSensor().getType());
     }
     mIsRecording = false;
     mInitialized = false;
@@ -69,7 +68,7 @@ public class RecordingManager implements SensorEventCallback {
 
   public static /*synchronized */RecordingManager getInstance() {
     if (null == singleTonInstance) {
-      LOG.printStack("");
+      Logger.is("");
     }
     return singleTonInstance;
   }
@@ -120,10 +119,10 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public void startRecording() {
-    mSensorController.clearCallbacksForAllSensors();
+    mSensorController.disableAllSensors();
 
     for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
-      mSensorController.registerCallbackForSensor(entry.getKey(), this);
+      mSensorController.enableSensor(entry.getKey());
     }
 
     mIsRecording = true;
@@ -138,7 +137,7 @@ public class RecordingManager implements SensorEventCallback {
   // TODO: run on new thread
   @Override
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (mDataFileWriter.dataBufferLock) {
+    synchronized (mDataFileWriter) {
       mDataBufferMap.get(sensor).add(event);
     }
     mSensorEventHitsCountsMap.get(sensor).raise();
@@ -147,12 +146,12 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public void stopRecording() {
-    mSensorController.clearCallbacksForAllSensors();
+    mSensorController.disableAllSensors();
     mDataWritingThread.interrupt();//TODO: use "stop?"
     try {
       mDataFileWriter.closeFile();
     } catch (IOException e) {
-      LOG.e(e.toString());
+      Logger.e(e.toString());
     }
     mIsRecording = false;
     mInitialized = false;
@@ -178,7 +177,7 @@ public class RecordingManager implements SensorEventCallback {
           }
         }
       } catch (InterruptedException e) {
-        LOG.i("Thread Interrupted");
+        Logger.i("Thread Interrupted");
       } catch (IOException e) {
         if (mOnRecordingFailedListener != null) {
           mOnRecordingFailedListener.onRecordingFailed();
@@ -299,7 +298,7 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public interface OnRecordingCanceledListener {
-    void onRecordingCanceled(boolean succeed);
+    void onRecordingCanceled();
   }
 
   /**
@@ -332,74 +331,65 @@ public class RecordingManager implements SensorEventCallback {
 
   private void showStarterDialogInternal(final Activity activity) {
     selectedSensors.clear();
-    AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle(R.string.recording_starter_title).setMultiChoiceItems(sensorNameList, selectedSensorsArray, new DialogInterface.OnMultiChoiceClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-        selectedSensorsArray[which] = isChecked;
+    AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle(R.string.recording_starter_title).setMultiChoiceItems(sensorNameList, selectedSensorsArray, (dialog, which, isChecked) -> {
+      selectedSensorsArray[which] = isChecked;
 
-        if (which == 0) {
-          for (int i = 1; i < selectedSensorsArray.length; i++) {
-            if (selectedSensorsArray[i] != isChecked) {//assimilate all selections
-              //Maybe some side codes will be executed
-              //              onClick(dialog, i, isChecked);
-              ((AlertDialog) dialog).getListView().setItemChecked(i, isChecked);
-              selectedSensorsArray[i] = isChecked;
-              if (isChecked) {
-                selectedSensors.add(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
-              } else {
-                selectedSensors.remove(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
-              }
+      if (which == 0) {
+        for (int i = 1; i < selectedSensorsArray.length; i++) {
+          if (selectedSensorsArray[i] != isChecked) {//assimilate all selections
+            //Maybe some side codes will be executed
+            //              onClick(dialog, i, isChecked);
+            ((AlertDialog) dialog).getListView().setItemChecked(i, isChecked);
+            selectedSensorsArray[i] = isChecked;
+            if (isChecked) {
+              selectedSensors.add(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
+            } else {
+              selectedSensors.remove(mSensorController.getSensorList().get(i - 1));//TODO: not advanced enough?
             }
           }
+        }
+      } else {
+        if (isChecked) {
+          selectedSensors.add(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
+        } else {
+          selectedSensors.remove(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
+        }
+
+        if (selectedSensorsArray[0]) {//all was selected & indicating that isChecked==true
+          ((AlertDialog) dialog).getListView().setItemChecked(0, false);
+          selectedSensorsArray[0] = false;
         } else {
           if (isChecked) {
-            selectedSensors.add(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
-          } else {
-            selectedSensors.remove(mSensorController.getSensorList().get(which - 1));//TODO: not advanced enough?
-          }
-
-          if (selectedSensorsArray[0]) {//all was selected & indicating that isChecked==true
-            ((AlertDialog) dialog).getListView().setItemChecked(0, false);
-            selectedSensorsArray[0] = false;
-          } else {
-            if (isChecked) {
-              boolean selectedAll = true;
-              for (int i = 1; i < selectedSensorsArray.length; i++) {
-                selectedAll &= selectedSensorsArray[i];
-              }
-              if (selectedAll) {
-                ((AlertDialog) dialog).getListView().setItemChecked(0, true);
-                selectedSensorsArray[0] = true;
-              }
+            boolean selectedAll = true;
+            for (int i = 1; i < selectedSensorsArray.length; i++) {
+              selectedAll &= selectedSensorsArray[i];
+            }
+            if (selectedAll) {
+              ((AlertDialog) dialog).getListView().setItemChecked(0, true);
+              selectedSensorsArray[0] = true;
             }
           }
         }
       }
-    }).setPositiveButton(R.string.btn_positive, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        if (selectedSensors.isEmpty()) {
-          Toast.makeText(activity, "Please select more...", Toast.LENGTH_SHORT).show();
-          if (mOnRecordingCanceledListener != null) {
-            mOnRecordingCanceledListener.onRecordingCanceled(false);
-          }
-          return;
-        }
-        mInitialized = false;
-        sensorsToRecord.clear();
-        sensorsToRecord.addAll(selectedSensors);
-        Intent intent = new Intent(activity, RecordingActivity.class);
-        activity.startActivityForResult(intent, RECORDING_ACTIVITY_REQUEST_CODE);
-      }
-    }).setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
+    }).setPositiveButton(R.string.btn_positive, (dialog, which) -> {
+      if (selectedSensors.isEmpty()) {
+        Toast.makeText(activity, "Please select more...", Toast.LENGTH_SHORT).show();
         if (mOnRecordingCanceledListener != null) {
-          mOnRecordingCanceledListener.onRecordingCanceled(false);
+          mOnRecordingCanceledListener.onRecordingCanceled();
         }
+        return;
+      }
+      mInitialized = false;
+      sensorsToRecord.clear();
+      sensorsToRecord.addAll(selectedSensors);
+      Intent intent = new Intent(activity, RecordingActivity.class);
+      activity.startActivityForResult(intent, RECORDING_ACTIVITY_REQUEST_CODE);
+    }).setNegativeButton(R.string.btn_cancel, (dialog, which) -> {
+      if (mOnRecordingCanceledListener != null) {
+        mOnRecordingCanceledListener.onRecordingCanceled();
       }
     });
-    AlertDialog alertDialog = builder.show();
+    builder.show();
   }
 
   public Set<CustomSensor> getSensorsToRecord() {

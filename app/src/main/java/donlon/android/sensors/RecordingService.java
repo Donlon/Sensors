@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.Logger;
 
 public class RecordingService extends Service {
   public RecordingService() {
@@ -13,26 +13,26 @@ public class RecordingService extends Service {
 
   @Override
   public void onCreate() {
-    LOG.w("onCreate - Thread ID = " + Thread.currentThread().getId());
+    Logger.i("onCreate - Thread ID = " + Thread.currentThread().getId());
     super.onCreate();
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    LOG.w("onStartCommand - startId = " + startId + ", Thread ID = " + Thread.currentThread().getId());
+    Logger.i("onStartCommand - startId = " + startId + ", Thread ID = " + Thread.currentThread().getId());
     return super.onStartCommand(intent, flags, startId);
   }
 
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {
-    LOG.w("onBind - Thread ID = " + Thread.currentThread().getId());
+    Logger.i("onBind - Thread ID = " + Thread.currentThread().getId());
     return null;
   }
 
   @Override
   public void onDestroy() {
-    LOG.w("onDestroy - Thread ID = " + Thread.currentThread().getId());
+    Logger.i("onDestroy - Thread ID = " + Thread.currentThread().getId());
     super.onDestroy();
   }
 

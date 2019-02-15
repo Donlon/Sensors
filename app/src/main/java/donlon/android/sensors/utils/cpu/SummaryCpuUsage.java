@@ -1,25 +1,10 @@
 package donlon.android.sensors.utils.cpu;
 
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class CpuUsageImplement {
-  public static CpuUsage createSysSummaryCpuUsage() {
-    return new SysSummaryCpuUsage();
-  }
-
-  public static CpuUsage createSingleProcessCpuUsage(int processId) {
-    return new SingleProcessCpuUsage(processId);
-  }
-
-  public static CpuUsage createCurrentProcessCpuUsage() {
-    return new SingleProcessCpuUsage(2333);
-  }
-}
-
-class SysSummaryCpuUsage implements CpuUsage {
+public class SummaryCpuUsage implements CpuUsage {
   private static final String FILE_PROC_STAT = "/proc/stat";
   private static final String ID_CPU = "cpu";
   private static final String PARAM_DELIMITER = " ";
@@ -30,10 +15,13 @@ class SysSummaryCpuUsage implements CpuUsage {
   private long[] mLastRawData;
   private long[] mNewRawData;//TODO: save workLoad & totalLoad only
 
-  SysSummaryCpuUsage() {
+  public SummaryCpuUsage() {
     mLastRawData = new long[PROC_STAT_PARAMS_COUNT];
     mNewRawData = new long[PROC_STAT_PARAMS_COUNT];
-    getAllCpuStat();
+    try {
+      getAllCpuStat();
+    } catch (RuntimeException ignored) {
+    }
   }
 
   /**
@@ -57,31 +45,27 @@ class SysSummaryCpuUsage implements CpuUsage {
     }
 
     if (tokens == null) {
-      onParseFailed();
-      return;
+      throw new RuntimeException();
     }
 
     for (int j = 0; j < PROC_STAT_PARAMS_COUNT; j++) {
       try {
         mNewRawData[j] = Long.parseLong(tokens[j + 1]);
       } catch (NumberFormatException e) {
-        e.printStackTrace();
         mNewRawData[j] = 0L;
-        //TODO: return null;
+        throw e;
       }
-    }
-  }
-
-  private void onParseFailed() {
-    if (mOnFailedListener != null) {
-      mOnFailedListener.onFailed();
     }
   }
 
   @Override
   public float requestCpuUsage() {
     System.arraycopy(mNewRawData, 0, mLastRawData, 0, PROC_STAT_PARAMS_COUNT);
-    getAllCpuStat();
+    try {
+      getAllCpuStat();
+    } catch (RuntimeException ex) {
+      return Float.POSITIVE_INFINITY;
+    }
 
     long prevTotal = getTotalLoad(mLastRawData);
     long nowTotal = getTotalLoad(mNewRawData);
@@ -89,8 +73,7 @@ class SysSummaryCpuUsage implements CpuUsage {
     long nowWork = getWorkLoad(mNewRawData);
 
     if (nowTotal - prevTotal == 0) {
-      onParseFailed();
-      return 0f;
+      return Float.POSITIVE_INFINITY;
     }
     return (nowWork - prevWork) / (float) (nowTotal - prevTotal);
   }
@@ -109,31 +92,5 @@ class SysSummaryCpuUsage implements CpuUsage {
       result += args[i];
     }
     return result;
-  }
-
-  private OnCpuUsageGetFailedListener mOnFailedListener;
-
-  @Override
-  public void setOnFailedListener(OnCpuUsageGetFailedListener listener) {
-    mOnFailedListener = listener;
-  }
-
-}
-
-class SingleProcessCpuUsage implements CpuUsage {
-  SingleProcessCpuUsage(int processId) {
-
-  }
-
-  @Override
-  public float requestCpuUsage() {
-    return 0f;
-  }
-
-  private OnCpuUsageGetFailedListener mOnFailedListener;
-
-  @Override
-  public void setOnFailedListener(OnCpuUsageGetFailedListener listener) {
-    mOnFailedListener = listener;
   }
 }

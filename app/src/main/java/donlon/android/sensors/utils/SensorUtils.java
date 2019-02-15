@@ -149,7 +149,6 @@ public class SensorUtils {
       case Sensor.TYPE_PRESSURE:
       case Sensor.TYPE_RELATIVE_HUMIDITY:
       case Sensor.TYPE_TEMPERATURE:
-        return 1;
       default:
         return 1;
     }

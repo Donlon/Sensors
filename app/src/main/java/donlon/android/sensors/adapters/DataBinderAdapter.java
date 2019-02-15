@@ -7,25 +7,24 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataBinderAdapter<VH extends DataBinderAdapter.ViewHolder, T> extends ArrayAdapter<T> {
+public class DataBinderAdapter<H extends DataBinderAdapter.ViewHolder, T> extends BaseAdapter {
   private final LayoutInflater mInflater;
 
-  private ViewBinder<VH, T> mViewBinder;
-  private ViewHolderCreator<VH> mViewHolderCreator;
+  private ViewBinder<H, T> mViewBinder;
+  private ViewHolderCreator<H> mViewHolderCreator;
 
   private List<T> mData;
-  private List<VH> mViewHolderList;
+  private List<H> mViewHolderList;
   private List<View> mRootViewList;
 
   private int mResource;
 
   public DataBinderAdapter(Context context, @LayoutRes int resource, List<T> data) {
-    super(context, resource, data);
     mData = data;
     mResource = resource;
     mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -64,7 +63,7 @@ public class DataBinderAdapter<VH extends DataBinderAdapter.ViewHolder, T> exten
 
   private void bindView(int position, View view) {
     if (mViewHolderCreator != null) {
-      VH viewHolder = mViewHolderCreator.onCreateViewHolder(position, view);
+      H viewHolder = mViewHolderCreator.onCreateViewHolder(position, view);
       mViewHolderList.add(viewHolder);
       T dataSet = mData.get(position);
       if (dataSet == null) {
@@ -76,27 +75,27 @@ public class DataBinderAdapter<VH extends DataBinderAdapter.ViewHolder, T> exten
     }
   }
 
-  public ViewBinder<VH, T> getViewBinder() {
+  public ViewBinder<H, T> getViewBinder() {
     return mViewBinder;
   }
 
-  public void setViewBinder(ViewBinder<VH, T> viewBinder) {
+  public void setViewBinder(ViewBinder<H, T> viewBinder) {
     mViewBinder = viewBinder;
   }
 
-  public ViewHolderCreator<VH> getViewHolderCreator() {
+  public ViewHolderCreator<H> getViewHolderCreator() {
     return mViewHolderCreator;
   }
 
-  public void setViewHolderCreator(ViewHolderCreator<VH> viewHolderCreator) {
+  public void setViewHolderCreator(ViewHolderCreator<H> viewHolderCreator) {
     mViewHolderCreator = viewHolderCreator;
   }
 
-  public VH getViewHolder(int position) {
+  public H getViewHolder(int position) {
     return mViewHolderList.get(position);
   }
 
-  public List<VH> getViewHolderList() {
+  public List<H> getViewHolderList() {
     return mViewHolderList;
   }
 
@@ -110,11 +109,11 @@ public class DataBinderAdapter<VH extends DataBinderAdapter.ViewHolder, T> exten
 
   public static class ViewHolder {
     public int position;
-    public View view;
+    public View rootView;
 
-    public ViewHolder(int position, View view) {
+    public ViewHolder(int position, View rootView) {
       this.position = position;
-      this.view = view;
+      this.rootView = rootView;
     }
   }
 }

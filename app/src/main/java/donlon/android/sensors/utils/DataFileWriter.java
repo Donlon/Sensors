@@ -14,7 +14,6 @@ import donlon.android.sensors.CustomSensor;
 
 public class DataFileWriter {
   private static final int DATA_FILE_VERSION = 1;
-  public Object dataBufferLock;
   private String mFilePath;
   /**
    * Reference from RecordingManager
@@ -25,7 +24,6 @@ public class DataFileWriter {
 
   public DataFileWriter(Map<CustomSensor, SensorEventsBuffer> dataCacheMap) {
     mDataCacheMap = dataCacheMap;
-    dataBufferLock = new Object();
   }
 
   public void setDataFilePath(String path) {
@@ -87,7 +85,7 @@ public class DataFileWriter {
     sensorsInfoOS.writeInt(mDataCacheMap.size());
 
     for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
-      Sensor sensor = entry.getKey().getSensorObject();
+      Sensor sensor = entry.getKey().getSensor();
 
       singleSensorInfoOS.writeInt(entry.getKey().id);
       singleSensorInfoOS.writeInt(entry.getKey().dataDimension);
@@ -120,18 +118,16 @@ public class DataFileWriter {
     sensorsInfoBuffer.reset();
   }
 
-  private byte[] separator = {1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1};
+  private static final byte[] separator = {1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1};
 
   private int writtenFramesCount;
 
-
   private ByteArrayOutputStream frameBuffer;
-
   private DataOutputStream frameBufferOS;
 
   public void flush() throws IOException {
     //TODO: just sync with each ArrayList<SensorEvent>
-    synchronized (dataBufferLock) {//TODO: das ist OK?
+    synchronized (this) {
       //Test
       mDataFileOutputStream.write(separator);
 
@@ -174,11 +170,11 @@ public class DataFileWriter {
   }
 
   public int getWrittenBytes() {
-    return mDataFileOutputStream.size();//TODO: should it be synchronized?
+    return mDataFileOutputStream.size();
   }
 
   public int getWrittenFrames() {
-    return writtenFramesCount;//TODO: should it be synchronized?
+    return writtenFramesCount;
   }
 
   public void closeFile() throws IOException {

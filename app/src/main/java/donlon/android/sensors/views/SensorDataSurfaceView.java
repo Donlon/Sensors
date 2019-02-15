@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.Logger;
 
 public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
   private SurfaceHolder mHolder;
@@ -26,7 +26,7 @@ public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.
 
   public SensorDataSurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
-    LOG.printStack("Abnormal");
+    Logger.is("Abnormal");
 
     initView();
   }

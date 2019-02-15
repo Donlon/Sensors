@@ -3,6 +3,8 @@ package donlon.android.sensors.activities;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,11 +15,10 @@ import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorController;
-import donlon.android.sensors.SensorEventCallback;
-import donlon.android.sensors.utils.LOG;
+import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorDetailsActivity extends AppCompatActivity implements SensorEventCallback, RecordingManager.OnRecordingCanceledListener {
+public class SensorDetailsActivity extends AppCompatActivity implements RecordingManager.OnRecordingCanceledListener {
   private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
 
   private SensorController sensorManager;
@@ -33,7 +34,18 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   private TextView tvValue_3;
   private MenuItem menuPause;
 
-  private android.support.v7.app.ActionBar mActionBar;
+  private ActionBar mActionBar;
+
+  private Handler mHandler = new Handler();
+
+  private final Runnable mUiUpdaterRunnable = new Runnable() {
+    @Override
+    public void run() {
+      mActionBar.setTitle("Hits per second: " + eventHits);
+      eventHits = 0;
+      mHandler.postDelayed(this, 1000);
+    }
+  };
 
   //TODO: recycling
   @Override
@@ -41,24 +53,25 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     super.onCreate(savedInstanceState);
     initializeUi();
     initializeSensor();
-    sensorManager.registerCallbackForSensor(mSensor, this);
     recordingManager = RecordingManager.getInstance();
 
-    new Thread(() -> {
-      while (true) {
-        try {
-          Thread.sleep(1000);
-          final int v_eventHits = eventHits;
-          runOnUiThread(() -> mActionBar.setTitle("Hits per second: " + v_eventHits));
-          synchronized (eventHitsSync) {
-            eventHits = 0;
-          }
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-          break;
-        }
-      }
-    }).start();
+    new Thread().start();
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    sensorManager.enableSensor(mSensor);
+    sensorManager.setSensorOnChangeCallback(this::onSensorChanged);
+    mUiUpdaterRunnable.run();
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    sensorManager.disableSensor(mSensor);
+    sensorManager.setSensorOnChangeCallback(null);
+    mHandler.removeCallbacks(mUiUpdaterRunnable);
   }
 
   private void initializeUi() {
@@ -81,13 +94,13 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
     mSensorPos = getIntent().getIntExtra("SensorPos", -1);
     sensorManager = SensorController.getInstance();
     if (mSensorPos >= sensorManager.getSensorList().size()) {
-      LOG.printStack("Sensor position is unexpectedly wrong");
+      Logger.is("Sensor position is unexpectedly wrong");
       finish();
       return;
     }
 
     mSensor = sensorManager.getSensorList().get(mSensorPos);// TODO: fashion singleton
-    Sensor sensorInternal = mSensor.getSensorObject();
+    Sensor sensorInternal = mSensor.getSensor();
 
     tvSensorPrimaryName.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
     tvSensorSecondaryName.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
@@ -100,7 +113,7 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
       case 3:
         break;
       default:
-        LOG.printStack("Unexpected data dimension");
+        Logger.is("Unexpected data dimension");
         break;
     }
     //TODO: if Landscape...
@@ -108,26 +121,29 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   }
 
   private int eventHits = 0;
-  private final Object eventHitsSync = new Object();
 
-  @Override
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (eventHitsSync) {
-      eventHits++;
+    if (sensor != mSensor) {
+      throw new IllegalArgumentException();
     }
-    tvValue_1.setText(String.valueOf(event.values[0]));
+    eventHits++;
 
-    switch (mSensor.dataDimension) {
-      case 3:
-        tvValue_3.setText(String.valueOf(event.values[2]));
-      case 2:
-        tvValue_2.setText(String.valueOf(event.values[1]));
-      case 1:
-        tvValue_1.setText(String.valueOf(event.values[0]));
-        break;
-      default:
-        LOG.printStack("Unexpected data dimension");
-        break;
+    tvValue_1.setText(String.valueOf(event.values[0]));
+    try {
+      switch (mSensor.dataDimension) {
+        case 3:
+          tvValue_3.setText(String.valueOf(event.values[2]));
+        case 2:
+          tvValue_2.setText(String.valueOf(event.values[1]));
+        case 1:
+          tvValue_1.setText(String.valueOf(event.values[0]));
+          break;
+        default:
+          Logger.is("Unexpected data dimension");
+          break;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -162,7 +178,6 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
         recordingManager.showStarterDialog(this, mSensorPos);
         break;
       case android.R.id.home: // back button
-        sensorManager.clearCallbackForSensor(mSensor);
         finish();
         break;
       default:
@@ -182,7 +197,12 @@ public class SensorDetailsActivity extends AppCompatActivity implements SensorEv
   }
 
   @Override
-  public void onRecordingCanceled(boolean succeed) {
+  protected void onDestroy() {
+    super.onDestroy();
+  }
+
+  @Override
+  public void onRecordingCanceled() {
     resumeViewing();
   }
 }

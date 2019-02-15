@@ -5,56 +5,20 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import donlon.android.sensors.utils.LOG;
-
 public class SensorController {
-  private List<CustomSensor> mSensorList;
+  private List<CustomSensor> mSensorList = new ArrayList<>();
+  private Map<Sensor, CustomSensor> mSensorMap = new HashMap<>(20);
   private SensorManager mSysSensorManager;
 
   private static final int DEFAULT_PREVIEW_DELAY = SensorManager.SENSOR_DELAY_FASTEST;
 
-  private SensorController(Context context) {
-    mSysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-
-    List<Sensor> allSensor;
-    if (mSysSensorManager != null) {
-      allSensor = mSysSensorManager.getSensorList(Sensor.TYPE_ALL);
-    } else {
-      throw new NullPointerException();
-    }
-
-    mSensorList = new ArrayList<>();
-    int count = 0;
-    for (Sensor s : allSensor) {
-      CustomSensor sensor = new CustomSensor(s);
-      sensor.id = count;
-      initSensor(sensor);
-      mSensorList.add(sensor);
-      count++;
-    }
-    mCallbacksSet = new HashMap<>();
-    //TODO: testify the efficiency of ArrayMap or wrap the listener
-
-  }
-
-  private void initSensor(CustomSensor sensor) {
-    switch (sensor.getSensorObject().getType()) {
-      case Sensor.TYPE_ACCELEROMETER:
-      case Sensor.TYPE_GRAVITY:
-      case Sensor.TYPE_LINEAR_ACCELERATION:
-      case Sensor.TYPE_MAGNETIC_FIELD:
-        sensor.flag |= CustomSensor.FLAG_3D_DATA;
-      default:
-        break;
-    }
-  }
+  private SensorEventCallback mSensorEventCallback;
 
   /**
    * SingleTon creator
@@ -65,46 +29,69 @@ public class SensorController {
   public static SensorController create(Context context) {
     return singleTonInstance = new SensorController(context);
   }
-
   /**
    * SingleTon instance
    */
   private static SensorController singleTonInstance;
 
+
   public static /*synchronized */SensorController getInstance() {
-    if (null == singleTonInstance) {
-      LOG.printStack("");
-    }
+    assert singleTonInstance != null;
     return singleTonInstance;
   }
 
-  private Map<Sensor, CallbackPair> mCallbacksSet;
+  private SensorController(Context context) {
+    mSysSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
-  public void registerCallbackForSensor(@NonNull CustomSensor sensor, SensorEventCallback callback) {
-    Sensor _sensor = sensor.getSensorObject();
-    SensorController.CallbackPair _callback = mCallbacksSet.get(_sensor);
-    if (_callback != null) {
-      _callback.callback = callback;
-    } else {
-      mCallbacksSet.put(_sensor, new CallbackPair(sensor, callback));
-      mSysSensorManager.registerListener(mSensorListener, _sensor, DEFAULT_PREVIEW_DELAY);
+    if (mSysSensorManager == null) {
+      throw new UnsupportedOperationException();
+    }
+    List<Sensor> allSensor = mSysSensorManager.getSensorList(Sensor.TYPE_ALL);
+
+    int count = 0;
+    for (Sensor s : allSensor) {
+      CustomSensor sensor = new CustomSensor(s);
+      sensor.id = count;
+      mSensorList.add(sensor);
+      mSensorMap.put(s, sensor);
+      count++;
+    }
+    //TODO: test the efficiency of ArrayMap or wrap the listener
+  }
+
+  public void enableSensor(CustomSensor sensor) {
+    if (sensor.isEnabled()) {
+      throw new IllegalStateException();
+    }
+    sensor.setEnabled(true);
+    mSysSensorManager.registerListener(mSensorListener, sensor.getSensor(), DEFAULT_PREVIEW_DELAY);
+  }
+
+  public void disableSensor(CustomSensor sensor) {
+    if (!sensor.isEnabled()) {
+      throw new IllegalStateException();
+    }
+    sensor.setEnabled(false);
+    mSysSensorManager.unregisterListener(mSensorListener, sensor.getSensor());
+  }
+
+  public void setSensorOnChangeCallback(SensorEventCallback callback) {
+    mSensorEventCallback = callback;
+  }
+
+  public void enableAllSensors() {
+    for (CustomSensor sensor : mSensorList) {
+      if (!sensor.isEnabled()) {
+        enableSensor(sensor);
+      }
     }
   }
 
-  public void registerCallbacksForAllSensors(SensorEventCallback callback) {
+  public void disableAllSensors() {
     for (CustomSensor sensor : mSensorList) {
-      registerCallbackForSensor(sensor, callback);
-    }
-  }
-
-  public void clearCallbackForSensor(CustomSensor sensor) {
-    mCallbacksSet.remove(sensor.getSensorObject());
-    mSysSensorManager.unregisterListener(mSensorListener, sensor.getSensorObject());
-  }
-
-  public void clearCallbacksForAllSensors() {
-    for (CustomSensor sensor : mSensorList) {
-      clearCallbackForSensor(sensor);
+      if (sensor.isEnabled()) {
+        disableSensor(sensor);
+      }
     }
   }
 
@@ -114,9 +101,10 @@ public class SensorController {
   private SensorEventListener mSensorListener = new SensorEventListener() {
     @Override
     public void onSensorChanged(SensorEvent event) {
-      //callback and listener must are set simultaneously
-      CallbackPair p = mCallbacksSet.get(event.sensor);
-      p.callback.onSensorChanged(p.sensor, event);
+      CustomSensor sensor = mSensorMap.get(event.sensor);
+      if (mSensorEventCallback != null) {
+        mSensorEventCallback.onSensorChanged(sensor, event);
+      }
     }
 
     @Override
@@ -125,21 +113,7 @@ public class SensorController {
     }
   };
 
-  /**
-   * Integrated form of sensor-callback
-   */
-  private class CallbackPair {
-    CustomSensor sensor;
-    SensorEventCallback callback;
-
-    CallbackPair(CustomSensor sensor, SensorEventCallback callback) {
-      this.sensor = sensor;
-      this.callback = callback;
-    }
-  }
-
   public List<CustomSensor> getSensorList() {
     return mSensorList;
   }
-
 }
