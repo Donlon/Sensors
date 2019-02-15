@@ -34,7 +34,6 @@ public class SensorController {
    */
   private static SensorController singleTonInstance;
 
-
   public static /*synchronized */SensorController getInstance() {
     assert singleTonInstance != null;
     return singleTonInstance;
@@ -50,8 +49,7 @@ public class SensorController {
 
     int count = 0;
     for (Sensor s : allSensor) {
-      CustomSensor sensor = new CustomSensor(s);
-      sensor.id = count;
+      CustomSensor sensor = new CustomSensor(count, s);
       mSensorList.add(sensor);
       mSensorMap.put(s, sensor);
       count++;
@@ -115,5 +113,9 @@ public class SensorController {
 
   public List<CustomSensor> getSensorList() {
     return mSensorList;
+  }
+
+  public CustomSensor get(int index) {
+    return mSensorList.get(index);
   }
 }

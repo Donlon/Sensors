@@ -13,13 +13,13 @@ import donlon.android.sensors.utils.SensorUtils;
   String sensorInfo();*/
 // TODO: use enumeration
 public class CustomSensor {
-  public int id = -1;
-  public String primaryName;
-
-  private int flag = 0;
   private static final int FLAG_3D_DATA = 1 << 2;
 
-  //  private String m_dataUnitSuffix;
+  private final int position;
+
+  public String primaryName;
+
+  private int flag;
 
   public int dataDimension;
 
@@ -30,7 +30,8 @@ public class CustomSensor {
 
   private Sensor m_sensor;
 
-  public CustomSensor(Sensor sensor) {
+  public CustomSensor(int position, Sensor sensor) {
+    this.position = position;
     m_sensor = sensor;
     dataDimension = SensorUtils.getSensorDataDimension(sensor.getType());
     //    m_dataUnitSuffix = " " + SensorUtils.getDataUnit(sensor.getType());
@@ -58,6 +59,10 @@ public class CustomSensor {
 
   public Sensor getSensor() {
     return m_sensor;
+  }
+
+  public int getPosition() {
+    return position;
   }
 
   public boolean is3dData() {

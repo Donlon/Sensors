@@ -87,7 +87,7 @@ public class DataFileWriter {
     for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
       Sensor sensor = entry.getKey().getSensor();
 
-      singleSensorInfoOS.writeInt(entry.getKey().id);
+      singleSensorInfoOS.writeInt(entry.getKey().getPosition());
       singleSensorInfoOS.writeInt(entry.getKey().dataDimension);
 
       singleSensorInfoOS.writeBytes(sensor.getName());
@@ -146,7 +146,7 @@ public class DataFileWriter {
       //Each data group
       for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
         //FixMe: write non-null sensor only
-        frameBufferOS.writeInt(entry.getKey().id);
+        frameBufferOS.writeInt(entry.getKey().getPosition());
         frameBufferOS.writeInt(entry.getValue().size());
 
         for (int i = 0; i < entry.getValue().size(); i++) {

@@ -16,13 +16,14 @@ import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorController;
 import donlon.android.sensors.utils.Logger;
+import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorDetailsActivity extends AppCompatActivity implements RecordingManager.OnRecordingCanceledListener {
+public class SensorDetailsActivity extends AppCompatActivity {
   private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
 
   private SensorController sensorManager;
-  private RecordingManager recordingManager;
+  private RecordingManager recordingManager = RecordingManager.getInstance();
 
   private int mSensorPos;
   private CustomSensor mSensor;
@@ -53,9 +54,6 @@ public class SensorDetailsActivity extends AppCompatActivity implements Recordin
     super.onCreate(savedInstanceState);
     initializeUi();
     initializeSensor();
-    recordingManager = RecordingManager.getInstance();
-
-    new Thread().start();
   }
 
   @Override
@@ -147,13 +145,6 @@ public class SensorDetailsActivity extends AppCompatActivity implements Recordin
     }
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
-    menuPause = menu.findItem(R.id.menuPause);
-    return true;
-  }
-
   private boolean mViewingPaused = true;
 
   /**
@@ -174,8 +165,8 @@ public class SensorDetailsActivity extends AppCompatActivity implements Recordin
         break;
       case R.id.menuRecord:
         pauseViewing();
-        recordingManager.setOnRecordingCanceledListener(this);
-        recordingManager.showStarterDialog(this, mSensorPos);
+        SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, sensorManager).setActivity(this).setOnRecordingFinishListener(this::resumeViewing).setSensorSelected(mSensor);
+        builder.show();
         break;
       case android.R.id.home: // back button
         finish();
@@ -197,12 +188,14 @@ public class SensorDetailsActivity extends AppCompatActivity implements Recordin
   }
 
   @Override
-  protected void onDestroy() {
-    super.onDestroy();
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
+    menuPause = menu.findItem(R.id.menuPause);
+    return true;
   }
 
   @Override
-  public void onRecordingCanceled() {
-    resumeViewing();
+  protected void onDestroy() {
+    super.onDestroy();
   }
 }

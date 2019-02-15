@@ -21,6 +21,7 @@ import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorController;
 import donlon.android.sensors.adapters.SensorsListAdapter;
 import donlon.android.sensors.utils.Logger;
+import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
     fabMain.setOnClickListener(v -> {
       saveUpdateSwitchState();
       mIsOpeningRecordingActivity = true;
-      mRecordingManager.showStarterDialog(MainActivity.this);
+      SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, mSensorController).setActivity(this).setOnRecordingFinishListener(this::rollbackUpdateSwitchState);
+      builder.show();
     });
-    mRecordingManager.setOnRecordingCanceledListener(this::rollbackUpdateSwitchState);
   }
 
   /**

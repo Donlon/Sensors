@@ -13,6 +13,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +40,8 @@ import donlon.android.sensors.utils.cpu.SingleProcessCpuUsage;
 import donlon.android.sensors.utils.cpu.SummaryCpuUsage;
 
 public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener {
+  public static final int RECORDING_ACTIVITY_REQUEST_CODE = 0xF401;
+  public static final String EXTRA_SELECTED_SENSORS = "SelectedSensors";
   private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
   private final static String SHARED_PREFERENCES_RECORDING_TIMES = "recording_times";
 
@@ -49,7 +52,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private String mDataFilePath;
 
   //UI Components
-  private android.support.v7.app.ActionBar mActionBar;
+  private ActionBar mActionBar;
   private TextView tvSavePath;
   private TextView tvElapsedTime;
   private TextView tvStatus;
@@ -154,7 +157,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       TextView tvName = row.findViewById(R.id.tvSensorName);
       tvName.setText(sensor.primaryName);
       TextView tvId = row.findViewById(R.id.tvId);
-      tvId.setText(String.valueOf(sensor.id));
+      tvId.setText(String.valueOf(sensor.getPosition()));
 
       tblSensorsInfo.addView(row, ++count);
       mCurrentScreenEditor.listTvLastHits.put(sensor, row.findViewById(R.id.tvLastHits));
@@ -183,6 +186,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       startRecording();
     } else {
       mDataFilePath = buildDataFilePath();
+      recordingManager.setSelectedSensors(getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS));
       recordingManager.setDataFilePath(mDataFilePath);
       recordingManager.init();
 
@@ -190,7 +194,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
         Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
       }
     }
-    tvSavePath.setText("Saved Location: " + mDataFilePath);
+    tvSavePath.setText(String.format("Saved Location: %s", mDataFilePath));
   }
 
   private String buildDataFilePath() {

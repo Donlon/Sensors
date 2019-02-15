@@ -67,7 +67,7 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
       tmpStr.append(MathUtils.getA(event.values));
     }
 
-    getViewHolder(sensor.id).tvData.setText(tmpStr.toString());
+    getViewHolder(sensor.getPosition()).tvData.setText(tmpStr.toString());
   }
 
   //TODO: clean codes below.
