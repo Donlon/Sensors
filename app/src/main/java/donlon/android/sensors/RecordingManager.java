@@ -4,29 +4,27 @@ import android.hardware.SensorEvent;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import donlon.android.sensors.activities.RecordingActivity;
 import donlon.android.sensors.utils.DataFileWriter;
 import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorEventsBuffer;
 
-public class RecordingManager implements SensorEventCallback {
+public class RecordingManager {
   //  private Context mContext;
 
   private SensorController mSensorController;
   private Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;
-  private Map<CustomSensor, SensorEventCounter> mSensorEventHitsCountsMap;// TODO: try AtomicInteger?
+//  private Map<CustomSensor, SensorEventCounter> mSensorEventHitsCountsMap;// TODO: try AtomicInteger?
 
   private boolean mIsRecording;
   private boolean mInitialized;
 
   private String mDataFilePath;
 
-  private int[] selectedSensors;
-  private Set<CustomSensor> sensorsToRecord;
+  private List<CustomSensor> mSensorsToRecord;
 
   private RecordingManager(SensorController sensorController) {
     mSensorController = sensorController;
@@ -66,41 +64,30 @@ public class RecordingManager implements SensorEventCallback {
     return mDataFilePath;
   }
 
-  public void setSelectedSensors(int[] selectedSensors) {
-    this.selectedSensors = selectedSensors;
+  public void setSensorsToRecord(List<CustomSensor> sensorsToRecord) {
+    this.mSensorsToRecord = sensorsToRecord;
   }
 
   public void init() {
-    sensorsToRecord = new HashSet<>();
     mDataBufferMap = new HashMap<>();
-    mSensorEventHitsCountsMap = new HashMap<>();//TODO: test ArrayMap
-    if (selectedSensors == null) {
+    if (mSensorsToRecord == null) {
       throw new IllegalArgumentException();
     }
-    for (int pos : selectedSensors) {
-      CustomSensor sensor = mSensorController.get(pos);
+    for (CustomSensor sensor : mSensorsToRecord) {
       mDataBufferMap.put(sensor, new SensorEventsBuffer(500));//TODO: diversity
-      mSensorEventHitsCountsMap.put(sensor, new SensorEventCounter());
-      sensorsToRecord.add(sensor);
       //TODO: differences between Queues
     }
-
-    mSensorEventHitsCountsMap.put(null, new SensorEventCounter());
-
-    mDataFileWriter = new DataFileWriter(mDataBufferMap);
-    mDataFileWriter.setDataFilePath(mDataFilePath);
+    mDataFileWriter = new DataFileWriter(mDataFilePath, mDataBufferMap);
     if (mDataFileWriter.init()) {
       mInitialized = true;
     }
   }
 
   public void setWidgetEditor(RecordingActivity.RecordingDashBoardViewHolder widgetsEditor) {
-    //    if(widgetsEditor == null){
     if (mWidgetsEditor != null) {
       mWidgetsEditor.removeRunnable(uiTimeUpdateRunnable);
       mWidgetsEditor.removeRunnable(uiContinuousUpdateRunnable);
     }
-    //    }
     mWidgetsEditor = widgetsEditor;
     if (isRecording() && widgetsEditor != null) {//resume update
       uiTimeUpdateRunnable.run();
@@ -119,23 +106,23 @@ public class RecordingManager implements SensorEventCallback {
     mDataWritingThread = new Thread(mDataWritingRunnable);
     mDataWritingThread.start();
 
+    mSensorController.setOnSensorChangeListener(this::onSensorChanged);
     uiTimeUpdateRunnable.run();
     uiContinuousUpdateRunnable.run();//TODO: Stop it by clearQueue when finished
   }
 
   // TODO: use listeners respectively
   // TODO: run on new thread
-  @Override
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
     synchronized (mDataFileWriter) {
-      mDataBufferMap.get(sensor).add(event);
+      SensorEventsBuffer buffer = mDataBufferMap.get(sensor);
+      buffer.add(event);
     }
-    mSensorEventHitsCountsMap.get(sensor).raise();
-    mSensorEventHitsCountsMap.get(null).raise();// Count for all sensors
     //TODO: Maybe sync needed
   }
 
   public void stopRecording() {
+    mSensorController.setOnSensorChangeListener(null);
     mSensorController.disableAllSensors();
     mDataWritingThread.interrupt();//TODO: use "stop?"
     try {
@@ -155,16 +142,16 @@ public class RecordingManager implements SensorEventCallback {
   private Runnable mDataWritingRunnable = new Runnable() {
     @Override
     public void run() {
-      updateUiOnFrame();
+//      updateUiOnFrame();
       try {
         while (mIsRecording) {
+          updateUiOnFrame();
           Thread.sleep(403);//TODO: write this delay to data file as metadata
           //Write frame
           mDataFileWriter.flush();
-          updateUiOnFrame();
-          for (Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()) {
-            entry.getValue().makeAsFrame();
-          }
+//          for (Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()) {
+//            entry.getValue().makeAsFrame();
+//          }
         }
       } catch (InterruptedException e) {
         Logger.i("Thread Interrupted");
@@ -173,7 +160,7 @@ public class RecordingManager implements SensorEventCallback {
           mOnRecordingFailedListener.onRecordingFailed();
         }
       }
-      updateUiOnFrame();
+//      updateUiOnFrame();
     }
   };
 
@@ -194,16 +181,17 @@ public class RecordingManager implements SensorEventCallback {
         mWidgetsEditor.tvWrittenFrames.setText(String.valueOf(mDataFileWriter.getWrittenFrames()));
         mWidgetsEditor.ivWritingFlashLight.setImageResource(android.R.drawable.star_big_on);
 
-        for (Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()) {
-          mWidgetsEditor.listTvLastHits.get(entry.getKey()).setText(String.valueOf(entry.getValue().getIncrement()));
+//        for (Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()) {
+//          mWidgetsEditor.listTvLastHits.get(entry.getKey()).setText(String.valueOf(entry.getValue().getIncrement()));
+//        }
+        for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
+          mWidgetsEditor.listTvLastHits.get(entry.getKey())
+              .setText(String.valueOf(entry.getValue().getLastFrameSize()));
         }
 
-        mWidgetsEditor.ivWritingFlashLight.postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            mWidgetsEditor.ivWritingFlashLight.setImageResource(android.R.drawable.star_off);
-            //TODO: what if ivWritingFlashLight is destroyed now?
-          }
+        mWidgetsEditor.ivWritingFlashLight.postDelayed(() -> {
+          mWidgetsEditor.ivWritingFlashLight.setImageResource(android.R.drawable.star_off);
+          //TODO: what if ivWritingFlashLight is destroyed now?
         }, 100);
       }
     }
@@ -216,8 +204,8 @@ public class RecordingManager implements SensorEventCallback {
     @Override
     public void run() {
       if (mWidgetsEditor != null) {//weird
-        for (Map.Entry<CustomSensor, SensorEventCounter> entry : mSensorEventHitsCountsMap.entrySet()) {
-          mWidgetsEditor.listTvAllHits.get(entry.getKey()).setText(String.valueOf(entry.getValue().get()));
+        for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
+          mWidgetsEditor.listTvAllHits.get(entry.getKey()).setText(String.valueOf(entry.getValue().getCount()));
         }
         mWidgetsEditor.runOnUiThread(this, 33);
       }
@@ -291,9 +279,9 @@ public class RecordingManager implements SensorEventCallback {
     void onRecordingFailed();
   }
 
-  public Set<CustomSensor> getSensorsToRecord() {
-    return sensorsToRecord;
-  }
+//  public Set<CustomSensor> getSensorsToRecord() {
+//    return mSensorsToRecord;
+//  }
 
   public boolean isRecording() {
     return mIsRecording;
@@ -304,31 +292,5 @@ public class RecordingManager implements SensorEventCallback {
   }
 
   public class SensorEventCounter {
-    int count = 0;
-    int countOnLastFrame = 0;
-    int lastFrameSize = 0;
-    byte[] mLock;
-
-    SensorEventCounter() {
-      mLock = new byte[0];
-    }
-
-    void raise() {
-      //      synchronized(mLock)
-      count++;
-    }
-
-    int get() {
-      return count;
-    }
-
-    void makeAsFrame() {
-      lastFrameSize = count - countOnLastFrame;
-      countOnLastFrame = count;
-    }
-
-    int getIncrement() {
-      return lastFrameSize;
-    }
   }
 }

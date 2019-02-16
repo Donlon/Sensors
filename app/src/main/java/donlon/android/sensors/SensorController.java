@@ -18,7 +18,7 @@ public class SensorController {
 
   private static final int DEFAULT_PREVIEW_DELAY = SensorManager.SENSOR_DELAY_FASTEST;
 
-  private SensorEventCallback mSensorEventCallback;
+  private OnSensorChangeListener mOnSensorChangeListener;
 
   /**
    * SingleTon creator
@@ -73,8 +73,8 @@ public class SensorController {
     mSysSensorManager.unregisterListener(mSensorListener, sensor.getSensor());
   }
 
-  public void setSensorOnChangeCallback(SensorEventCallback callback) {
-    mSensorEventCallback = callback;
+  public void setOnSensorChangeListener(OnSensorChangeListener listener) {
+    mOnSensorChangeListener = listener;
   }
 
   public void enableAllSensors() {
@@ -100,8 +100,8 @@ public class SensorController {
     @Override
     public void onSensorChanged(SensorEvent event) {
       CustomSensor sensor = mSensorMap.get(event.sensor);
-      if (mSensorEventCallback != null) {
-        mSensorEventCallback.onSensorChanged(sensor, event);
+      if (mOnSensorChangeListener != null) {
+        mOnSensorChangeListener.onSensorChange(sensor, event);
       }
     }
 
@@ -117,5 +117,9 @@ public class SensorController {
 
   public CustomSensor get(int index) {
     return mSensorList.get(index);
+  }
+
+  public interface OnSensorChangeListener {
+    void onSensorChange(CustomSensor sensor, SensorEvent event);
   }
 }

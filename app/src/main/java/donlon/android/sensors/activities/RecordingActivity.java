@@ -27,17 +27,20 @@ import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
+import donlon.android.sensors.SensorController;
 import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.cpu.CpuUsage;
+import donlon.android.sensors.utils.cpu.EmptyCpuUsage;
 import donlon.android.sensors.utils.cpu.SingleProcessCpuUsage;
-import donlon.android.sensors.utils.cpu.SummaryCpuUsage;
 
 public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener {
   public static final int RECORDING_ACTIVITY_REQUEST_CODE = 0xF401;
@@ -47,7 +50,8 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
   private SharedPreferences sharedPreferences;
 
-  private RecordingManager recordingManager;
+  private RecordingManager mRecordingManager;
+  private SensorController mSensorController;
   private ColorStateList colorTvSavePath;
   private String mDataFilePath;
 
@@ -67,7 +71,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private boolean mFirstRecord = true;
 
   private Runnable mCpuUsageUpdateRunnable = new Runnable() {
-    private CpuUsage sysSummaryCpuUsage = new SummaryCpuUsage();
+    private CpuUsage sysSummaryCpuUsage = new EmptyCpuUsage();
     private CpuUsage currentProcCpuUsage = new SingleProcessCpuUsage();
     private float sysSummaryCpuUsageValue;
     private float currentProcCpuUsageValue;
@@ -82,24 +86,31 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       currentProcCpuUsageValue = currentProcCpuUsage.requestCpuUsage();
       tvCpuUsage.setText(percentageFormatter.format(sysSummaryCpuUsageValue) + "/" + percentageFormatter.format(currentProcCpuUsageValue));
 
-      //      if(recordingManager.isRecording()){//TODO:
+      //      if(mRecordingManager.isRecording()){//TODO:
       tvCpuUsage.postDelayed(this, 873);
       //      }
     }
   };
   //Wondering why mHandler in class Activity can't be obtained...
   private Handler mHandler = new Handler();
+  private List<CustomSensor> mSensorsToRecord = new ArrayList<>();
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Logger.i("Here we go!");
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
-    recordingManager = RecordingManager.getInstance();
+    mSensorController = SensorController.getInstance();
+    mRecordingManager = RecordingManager.getInstance();
+    int[] selectedSensors = getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS);
+    for (int pos : selectedSensors) {
+      CustomSensor sensor = mSensorController.get(pos);
+      mSensorsToRecord.add(sensor);
+    }
     initializeUi();
     mCpuUsageUpdateRunnable.run();
 
-    recordingManager.setOnRecordingFailedListener(this);
+    mRecordingManager.setOnRecordingFailedListener(this);
 
     if (Build.VERSION.SDK_INT >= 23) {
       if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -151,7 +162,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
     // Init TableLayout
     int count = 0;
-    for (CustomSensor sensor : recordingManager.getSensorsToRecord()) {//TODO: when another moment?
+    for (CustomSensor sensor : mSensorsToRecord) {//TODO: when another moment?
       View row = getLayoutInflater().inflate(R.layout.recording_activity_details_table_row, tblSensorsInfo, false);
 
       TextView tvName = row.findViewById(R.id.tvSensorName);
@@ -165,15 +176,15 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     }
     TableRow rowAllSensors = findViewById(R.id.rowAllSensors);
 
-    if (recordingManager.getSensorsToRecord().size() == 1) {
+    if (mSensorsToRecord.size() == 1) {
       rowAllSensors.setVisibility(View.GONE);
     }
     //Still add "null" key for compatibility
     mCurrentScreenEditor.listTvLastHits.put(null, findViewById(R.id.tvAllSensorsLastHits));
     mCurrentScreenEditor.listTvAllHits.put(null, findViewById(R.id.tvAllSensorsAllHits));
 
-    if (recordingManager.isRecording()) {
-      recordingManager.setWidgetEditor(mCurrentScreenEditor);
+    if (mRecordingManager.isRecording()) {
+      mRecordingManager.setWidgetEditor(mCurrentScreenEditor);
       mCpuUsageUpdateRunnable.run();
     }
   }
@@ -181,16 +192,16 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private void onPermissionGranted() {
     // following initializeUi()
     // Start to init the manager
-    if (recordingManager.isRecording()) {
-      mDataFilePath = recordingManager.getDataFilePath();
+    if (mRecordingManager.isRecording()) {
+      mDataFilePath = mRecordingManager.getDataFilePath();
       startRecording();
     } else {
       mDataFilePath = buildDataFilePath();
-      recordingManager.setSelectedSensors(getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS));
-      recordingManager.setDataFilePath(mDataFilePath);
-      recordingManager.init();
+      mRecordingManager.setSensorsToRecord(mSensorsToRecord);
+      mRecordingManager.setDataFilePath(mDataFilePath);
+      mRecordingManager.init();
 
-      if (!recordingManager.initialized()) {
+      if (!mRecordingManager.initialized()) {
         Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
       }
     }
@@ -205,11 +216,11 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
 
   private void startRecordingManager() {
     mFirstRecord = false;
-    if (!recordingManager.initialized()) {
+    if (!mRecordingManager.initialized()) {
       Toast.makeText(RecordingActivity.this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
     } else {
       startRecording();
-      recordingManager.startRecording();
+      mRecordingManager.startRecording();
 
       SharedPreferences.Editor editor = sharedPreferences.edit();
       editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES, sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + 1);
@@ -224,9 +235,9 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   }
 
   private void stopRecordingManager() {
-    if (recordingManager.isRecording()) {
+    if (mRecordingManager.isRecording()) {
       keepScreenLongLight(false);
-      recordingManager.stopRecording();
+      mRecordingManager.stopRecording();
       //      tvCpuUsage.removeCallbacks(mCpuUsageUpdateRunnable);
     }
   }
@@ -240,7 +251,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   protected void onStop() {
     super.onStop();
     if (isFinishing()) {
-      recordingManager.finish();
+      mRecordingManager.finish();
     } else {
       Logger.i("RecordingActivity Stopped");
     }
@@ -249,13 +260,13 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   @Override
   protected void onPause() {
     super.onPause();
-    recordingManager.setWidgetEditor(null);//TODO: Must set free when appropriate
+    mRecordingManager.setWidgetEditor(null);//TODO: Must set free when appropriate
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-    recordingManager.setWidgetEditor(mCurrentScreenEditor);
+    mRecordingManager.setWidgetEditor(mCurrentScreenEditor);
   }
 
   @Override
@@ -278,13 +289,13 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       case R.id.set_delay:
         break;
       case R.id.start_or_stop:
-        if (recordingManager.isRecording()) {
+        if (mRecordingManager.isRecording()) {
           stopRecordingManager();
           Toast.makeText(RecordingActivity.this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
           tvSavePath.setTextColor(Color.RED);
         } else {
           if (!mFirstRecord) {
-            recordingManager.init();//TODO: Add Reset btn?
+            mRecordingManager.init();//TODO: Add Reset btn?
           }
           startRecordingManager();
           Toast.makeText(RecordingActivity.this, "RecordingManager started.", Toast.LENGTH_SHORT).show();

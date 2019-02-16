@@ -22,12 +22,9 @@ public class DataFileWriter {
 
   private DataOutputStream mDataFileOutputStream;
 
-  public DataFileWriter(Map<CustomSensor, SensorEventsBuffer> dataCacheMap) {
-    mDataCacheMap = dataCacheMap;
-  }
-
-  public void setDataFilePath(String path) {
+  public DataFileWriter(String path, Map<CustomSensor, SensorEventsBuffer> dataCacheMap) {
     mFilePath = path;
+    mDataCacheMap = dataCacheMap;
   }
 
   public boolean init() {
@@ -145,7 +142,10 @@ public class DataFileWriter {
 
       //Each data group
       for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
-        //FixMe: write non-null sensor only
+        if (entry.getValue().isEmpty()) {
+          continue;
+        }
+
         frameBufferOS.writeInt(entry.getKey().getPosition());
         frameBufferOS.writeInt(entry.getValue().size());
 
@@ -153,7 +153,7 @@ public class DataFileWriter {
           SensorEventAggregation event = entry.getValue().get(i);
           frameBufferOS.writeLong(event.timeStamp);
           frameBufferOS.writeFloat(event.accuracy);
-          for (int j = 0; j < entry.getKey().dataDimension; j++) {//event.values.length
+          for (int j = 0; j < entry.getKey().dataDimension; j++) { //event.values.length
             frameBufferOS.writeFloat(event.values[j]);
           }
         }

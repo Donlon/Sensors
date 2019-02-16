@@ -3,6 +3,7 @@ package donlon.android.sensors.adapters;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.os.Handler;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -13,22 +14,45 @@ import java.util.List;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.SensorEventCallback;
-import donlon.android.sensors.utils.MathUtils;
+import donlon.android.sensors.SensorController;
+import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.SensorListViewHolder,CustomSensor>
-    implements CompoundButton.OnCheckedChangeListener, SensorEventCallback {
+    implements CompoundButton.OnCheckedChangeListener, SensorController.OnSensorChangeListener {
+  private float[][] mSensorDataCache;
+
+  private int mSensorCount;
+
+  private Handler mHandler = new Handler();
+
+  private Runnable mUpdaterRunnable = new Runnable() {
+    @Override
+    public void run() {
+      for (int i = 0; i < mSensorCount; i++) {
+        if (mSensorDataCache[i] != null && mSensorDataCache[i].length > 0) {
+          SensorListViewHolder viewHolder = getViewHolder(i);
+          if (mSensorDataCache[i].length == 3) {
+            viewHolder.tvData.setText(FormatterUtils.format3dData(mSensorDataCache[i]));
+          } else {
+            viewHolder.tvData.setText(String.valueOf(mSensorDataCache[i][0]));
+          }
+        }
+      }
+      mHandler.postDelayed(this, 20);
+    }
+  };
 
   public SensorsListAdapter(Context context, List<CustomSensor> sensorList) {
     super(context, R.layout.sensors_preview_list_entry, sensorList);
-
     super.setViewHolderCreator(SensorListViewHolder::new);
-    super.setViewBinder(this::bindData);
+    super.setViewBinder((position, viewHolder, data) -> bindData(viewHolder, data));
     super.createViews();
+    mSensorCount = sensorList.size();
+    mSensorDataCache = new float[mSensorCount][];
   }
 
-  private void bindData(int position, SensorListViewHolder viewHolder, CustomSensor data) {
+  private void bindData(SensorListViewHolder viewHolder, CustomSensor data) {
     Sensor sensor = data.getSensor();
     viewHolder.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getType()));
     viewHolder.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getType()));
@@ -51,23 +75,16 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
    * @param event  event
    */
   @Override
-  public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    if (sensor.dataDimension == 0) {
-      return;
-    }
-    StringBuilder tmpStr = new StringBuilder();
-    for (int i = 0; i < sensor.dataDimension; i++) {
-      tmpStr.append(String.valueOf(event.values[i]));
-      if (i != sensor.dataDimension - 1) {
-        tmpStr.append("\n");
-      }
-    }
-    if (sensor.is3dData()) {
-      tmpStr.append("\n");
-      tmpStr.append(MathUtils.getA(event.values));
-    }
+  public void onSensorChange(CustomSensor sensor, SensorEvent event) {
+    mSensorDataCache[sensor.getPosition()] = event.values;
+  }
 
-    getViewHolder(sensor.getPosition()).tvData.setText(tmpStr.toString());
+  public void startUpdating() {
+    mHandler.post(mUpdaterRunnable);
+  }
+
+  public void stopUpdating() {
+    mHandler.removeCallbacks(mUpdaterRunnable);
   }
 
   //TODO: clean codes below.
@@ -105,17 +122,17 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
     void OnSensorsListCbxChecked(int pos, boolean selected);
   }
 
-  public class SensorListViewHolder extends DataBinderAdapter.ViewHolder {
-    public TextView tvPrimaryName;
-    public TextView tvSecondaryName;
-    public TextView tvInfo;
-    public TextView tvDataPrefix;
-    public TextView tvData;
-    public TextView tvUnit;
-    public CheckBox cbxEnabled;
-    public LinearLayout layoutRight;
+  static class SensorListViewHolder extends DataBinderAdapter.ViewHolder {
+    TextView tvPrimaryName;
+    TextView tvSecondaryName;
+    TextView tvInfo;
+    TextView tvDataPrefix;
+    TextView tvData;
+    TextView tvUnit;
+    CheckBox cbxEnabled;
+    LinearLayout layoutRight;
 
-    public SensorListViewHolder(int position, View rootView) {
+    SensorListViewHolder(int position, View rootView) {
       super(position, rootView);
       tvPrimaryName = rootView.findViewById(R.id.tvSensorPrimaryName);
       tvSecondaryName = rootView.findViewById(R.id.tvSensorSecondaryName);

@@ -13,18 +13,14 @@ import android.widget.TextView;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorController;
 import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorDetailsActivity extends AppCompatActivity {
-  private static final int DATA_QUEUE_SAMPLES_COUNT = 256;
-
-  private SensorController sensorManager;
-  private RecordingManager recordingManager = RecordingManager.getInstance();
-
+  private SensorController mSensorManager;
+  private boolean mIsMenuCreated = false;
   private int mSensorPos;
   private CustomSensor mSensor;
 
@@ -52,24 +48,8 @@ public class SensorDetailsActivity extends AppCompatActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    initializeUi();
     initializeSensor();
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    sensorManager.enableSensor(mSensor);
-    sensorManager.setSensorOnChangeCallback(this::onSensorChanged);
-    mUiUpdaterRunnable.run();
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    sensorManager.disableSensor(mSensor);
-    sensorManager.setSensorOnChangeCallback(null);
-    mHandler.removeCallbacks(mUiUpdaterRunnable);
+    initializeUi();
   }
 
   private void initializeUi() {
@@ -81,27 +61,9 @@ public class SensorDetailsActivity extends AppCompatActivity {
     tvValue_2 = findViewById(R.id.tvValue_2);
     tvValue_3 = findViewById(R.id.tvValue_3);
 
-    mActionBar = getSupportActionBar();
-    if (mActionBar != null) {
-      mActionBar.setHomeButtonEnabled(true);
-      mActionBar.setDisplayHomeAsUpEnabled(true);
-    }
-  }
-
-  private void initializeSensor() {
-    mSensorPos = getIntent().getIntExtra("SensorPos", -1);
-    sensorManager = SensorController.getInstance();
-    if (mSensorPos >= sensorManager.getSensorList().size()) {
-      Logger.is("Sensor position is unexpectedly wrong");
-      finish();
-      return;
-    }
-
-    mSensor = sensorManager.getSensorList().get(mSensorPos);// TODO: fashion singleton
     Sensor sensorInternal = mSensor.getSensor();
-
     tvSensorPrimaryName.setText(SensorUtils.getSensorNameByType(sensorInternal.getType()));
-    tvSensorSecondaryName.setText(sensorInternal.getName() + " By " + sensorInternal.getVendor());
+    tvSensorSecondaryName.setText(String.format("%s By %s", sensorInternal.getName(), sensorInternal.getVendor()));
 
     switch (mSensor.dataDimension) {
       case 1:
@@ -114,8 +76,22 @@ public class SensorDetailsActivity extends AppCompatActivity {
         Logger.is("Unexpected data dimension");
         break;
     }
-    //TODO: if Landscape...
-    mActionBar.setTitle(sensorInternal.getName());
+
+    mActionBar = getSupportActionBar();
+    if (mActionBar != null) {
+      mActionBar.setHomeButtonEnabled(true);
+      mActionBar.setDisplayHomeAsUpEnabled(true);
+      //TODO: if Landscape...
+      mActionBar.setTitle(sensorInternal.getName());
+    }
+  }
+
+  private void initializeSensor() {
+    mSensorPos = getIntent().getIntExtra("SensorPos", -1);
+    mSensorManager = SensorController.getInstance();
+    mSensor = mSensorManager.getSensorList().get(mSensorPos);// TODO: fashion singleton
+    assert mSensor != null;
+
   }
 
   private int eventHits = 0;
@@ -145,27 +121,26 @@ public class SensorDetailsActivity extends AppCompatActivity {
     }
   }
 
-  private boolean mViewingPaused = true;
+  private boolean mIsViewing = true;
 
-  /**
-   * Event listener for clicks on title bar.
-   *
-   * @param item menu item
-   * @return what should be returned
-   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.menuPause:
-        if (mViewingPaused) {
-          resumeViewing();
-        } else {
+        if (mIsViewing) {
           pauseViewing();
+        } else {
+          resumeViewing();
         }
         break;
       case R.id.menuRecord:
-        pauseViewing();
-        SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, sensorManager).setActivity(this).setOnRecordingFinishListener(this::resumeViewing).setSensorSelected(mSensor);
+        if (mIsViewing) {
+          pauseViewing();
+        }
+        SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, mSensorManager)
+            .setActivity(this)
+            .setOnRecordingFinishListener(this::resumeViewing)
+            .setSensorSelected(mSensor);
         builder.show();
         break;
       case android.R.id.home: // back button
@@ -177,25 +152,41 @@ public class SensorDetailsActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  private void pauseViewing() {
-    menuPause.setTitle(R.string.start);
-    mViewingPaused = true;
+  private void resumeViewing() {
+    mIsViewing = true;
+    mSensorManager.enableSensor(mSensor);
+    mSensorManager.setOnSensorChangeListener(this::onSensorChanged);
+    mUiUpdaterRunnable.run();
+    if (mIsMenuCreated) {
+      menuPause.setTitle(R.string.pause);
+    }
   }
 
-  private void resumeViewing() {
-    menuPause.setTitle(R.string.pause);
-    mViewingPaused = false;
+  private void pauseViewing() {
+    mIsViewing = false;
+    mSensorManager.disableSensor(mSensor);
+    mSensorManager.setOnSensorChangeListener(null);
+    mHandler.removeCallbacks(mUiUpdaterRunnable);
+    menuPause.setTitle(R.string.start);
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.sensor_details_activity_menu, menu);
     menuPause = menu.findItem(R.id.menuPause);
+    mIsMenuCreated = true;
     return true;
   }
 
   @Override
-  protected void onDestroy() {
-    super.onDestroy();
+  protected void onResume() {
+    super.onResume();
+    resumeViewing();
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    pauseViewing();
   }
 }

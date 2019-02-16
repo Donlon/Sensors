@@ -2,7 +2,6 @@ package donlon.android.sensors.utils;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -136,10 +135,14 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
     }
     selectedSensorArray[0] = selectedAll; // duplicated
 
-    this.setTitle(R.string.recording_starter_title).setMultiChoiceItems(sensorNameList, selectedSensorArray, (dialog, which, isChecked) -> onMultiChoiceItems(which, isChecked)).setPositiveButton(R.string.btn_positive, null).setNegativeButton(R.string.btn_cancel, null);
+    this.setTitle(R.string.recording_starter_title)
+        .setMultiChoiceItems(sensorNameList, selectedSensorArray,
+            (dialog, which, isChecked) -> onMultiChoiceItems(which, isChecked))
+        .setPositiveButton(R.string.btn_positive, (dialog, which) -> onPositiveButtonClick())
+        .setNegativeButton(R.string.btn_cancel, (dialog, which) -> onNegativeButtonClick());
     mDialog = super.create();
-    mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> onPositiveButtonClick());
-    mDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setOnClickListener(v -> onNegativeButtonClick());
+//    mDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> onPositiveButtonClick());
+//    mDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v -> onNegativeButtonClick());
     return mDialog;
   }
 

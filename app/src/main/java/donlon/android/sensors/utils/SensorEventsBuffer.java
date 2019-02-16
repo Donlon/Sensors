@@ -7,8 +7,11 @@ import java.util.List;
 
 public class SensorEventsBuffer {
   private List<SensorEventAggregation> mBuffer;
-  private int mCurrentPosition;
+  private int mCurrentPosition = 0;
 
+  private int mCount = 0;
+
+  private int mLastFrameSize = 0;
   public SensorEventsBuffer(int dataDimension) {
     this(100, dataDimension);
   }
@@ -19,7 +22,6 @@ public class SensorEventsBuffer {
     while (d-- > 0) {
       mBuffer.add(new SensorEventAggregation(dataDimension));
     }
-    mCurrentPosition = 0;
   }
 
   public void add(SensorEvent event) {
@@ -28,11 +30,16 @@ public class SensorEventsBuffer {
 
   public void add(float values[], float accuracy, long timeStamp) {
     if (mCurrentPosition < mBuffer.size()) {
-      mBuffer.get(mCurrentPosition++).set(values, accuracy, timeStamp);
+      mBuffer.get(mCurrentPosition).set(values, accuracy, timeStamp);
     } else {
       mBuffer.add(new SensorEventAggregation(values, accuracy, timeStamp));
-      mCurrentPosition++;
     }
+    mCurrentPosition++;
+    mCount++;
+  }
+
+  public int getCount() {
+    return mCount;
   }
 
   public SensorEventAggregation get(int i) {
@@ -40,6 +47,7 @@ public class SensorEventsBuffer {
   }
 
   public void clear() {
+    mLastFrameSize = mCurrentPosition;
     mCurrentPosition = 0;
   }
 
@@ -49,5 +57,9 @@ public class SensorEventsBuffer {
 
   public int size() {
     return mCurrentPosition;
+  }
+
+  public int getLastFrameSize() {
+    return mLastFrameSize;
   }
 }
