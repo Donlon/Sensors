@@ -1,7 +1,6 @@
 package donlon.android.sensors.activities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -25,24 +24,26 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
 import donlon.android.sensors.RecordingManager;
 import donlon.android.sensors.SensorController;
+import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.Logger;
+import donlon.android.sensors.utils.SensorEventsBuffer;
 import donlon.android.sensors.utils.cpu.CpuUsage;
 import donlon.android.sensors.utils.cpu.EmptyCpuUsage;
-import donlon.android.sensors.utils.cpu.SingleProcessCpuUsage;
 
-public class RecordingActivity extends AppCompatActivity implements RecordingManager.OnRecordingFailedListener {
+public class RecordingActivity extends AppCompatActivity {
   public static final int RECORDING_ACTIVITY_REQUEST_CODE = 0xF401;
   public static final String EXTRA_SELECTED_SENSORS = "SelectedSensors";
   private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
@@ -53,7 +54,9 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private RecordingManager mRecordingManager;
   private SensorController mSensorController;
   private ColorStateList colorTvSavePath;
-  private String mDataFilePath;
+
+  private Handler mHandler = new Handler();
+  private List<CustomSensor> mSensorsToRecord = new ArrayList<>();
 
   //UI Components
   private ActionBar mActionBar;
@@ -65,35 +68,111 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   private TextView tvWrittenBytes;
   private ImageView ivWritingFlashLight;
   private TableLayout tblSensorsInfo;
-
-  private RecordingDashBoardViewHolder mCurrentScreenEditor;
-
+  private Map<CustomSensor, SensorInfoViewHolder> mViewHolderMap = new HashMap<>();
+  private TextView tvAllSensorsLastHits;
+  private TextView tvAllSensorsAllHits;
   private boolean mFirstRecord = true;
 
   private Runnable mCpuUsageUpdateRunnable = new Runnable() {
     private CpuUsage sysSummaryCpuUsage = new EmptyCpuUsage();
-    private CpuUsage currentProcCpuUsage = new SingleProcessCpuUsage();
-    private float sysSummaryCpuUsageValue;
+    private CpuUsage currentProcCpuUsage = new EmptyCpuUsage();
     private float currentProcCpuUsageValue;
-    private DecimalFormat percentageFormatter = new DecimalFormat("##%");
+    private float sysSummaryCpuUsageValue;
 
-    //    private char parity;
-    @SuppressLint("SetTextI18n")
     @Override
     public void run() {
-      //      parity++;
-      sysSummaryCpuUsageValue = sysSummaryCpuUsage.requestCpuUsage();
       currentProcCpuUsageValue = currentProcCpuUsage.requestCpuUsage();
-      tvCpuUsage.setText(percentageFormatter.format(sysSummaryCpuUsageValue) + "/" + percentageFormatter.format(currentProcCpuUsageValue));
-
-      //      if(mRecordingManager.isRecording()){//TODO:
+      sysSummaryCpuUsageValue = sysSummaryCpuUsage.requestCpuUsage();
+      tvCpuUsage.setText(String.format(Locale.ENGLISH, "%.2f%%/%.2f%%",
+          currentProcCpuUsageValue,
+          sysSummaryCpuUsageValue));
       tvCpuUsage.postDelayed(this, 873);
-      //      }
     }
   };
-  //Wondering why mHandler in class Activity can't be obtained...
-  private Handler mHandler = new Handler();
-  private List<CustomSensor> mSensorsToRecord = new ArrayList<>();
+
+  /**
+   * Triggered each frame (each writing), indirectly called from DataWritingThread
+   */
+  private Runnable mOnNewFrameRunnable = new Runnable() {
+    @Override
+    public void run() {
+      tvWrittenBytes.setText(FormatterUtils.formatBytes(mRecordingManager.getWrittenBytes()));
+      tvWrittenFrames.setText(String.valueOf(mRecordingManager.getWrittenFrames()));
+      ivWritingFlashLight.setImageResource(android.R.drawable.star_big_on);
+
+      int count = 0;
+      for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mRecordingManager.getDataBufferMap().entrySet()) {
+        int size = entry.getValue().getLastFrameSize();
+        mViewHolderMap.get(entry.getKey()).tvLastHits.setText(String.valueOf(size));
+        count += size;
+      }
+      tvAllSensorsLastHits.setText(String.valueOf(count));
+      mHandler.postDelayed(() -> {
+        ivWritingFlashLight.setImageResource(android.R.drawable.star_off);
+        //TODO: what if ivWritingFlashLight is destroyed now?
+      }, 100);
+    }
+  };
+
+  /**
+   * Called from UI Thread
+   */
+  private Runnable mUiTimeUpdateRunnable = new Runnable() {
+    private int time = 0;
+    private static final String C1 = " ";
+    private static final String C2 = ":";
+    private boolean parity;
+
+    StringBuilder builder = new StringBuilder();
+
+    private void appendTimeChars(StringBuilder builder, int t) {
+      if (t < 10) {
+        builder.append('0');
+        builder.append(t);
+      } else {
+        builder.append(t);
+      }
+    }
+
+    @Override
+    public void run() {
+      mHandler.postDelayed(this, 500);
+
+      appendTimeChars(builder, time / 3600);
+      builder.append(parity ? C1 : C2);
+      appendTimeChars(builder, (time % 3600) / 60);
+      builder.append(parity ? C1 : C2);
+      appendTimeChars(builder, time % 60);
+
+      builder.append(" (Estimated)");
+
+      tvElapsedTime.setText(builder.toString());
+      builder.setLength(0);
+
+      if (parity) {
+        time++;
+      }
+
+      parity = !parity;
+    }
+  };
+
+  /**
+   * Quickly triggered Runnable, called from UI Thread
+   */
+  private Runnable uiContinuousUpdateRunnable = new Runnable() {
+    @Override
+    public void run() {
+      int count = 0;
+      for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mRecordingManager.getDataBufferMap().entrySet()) {
+        int size = entry.getValue().getCount();
+        mViewHolderMap.get(entry.getKey()).tvAllHits.setText(String.valueOf(size));
+        count += size;
+      }
+      tvAllSensorsAllHits.setText(String.valueOf(count));
+      mHandler.postDelayed(this, 33);
+    }
+  };
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -101,7 +180,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     Logger.i("Here we go!");
     sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
     mSensorController = SensorController.getInstance();
-    mRecordingManager = RecordingManager.getInstance();
+    mRecordingManager = new RecordingManager(mSensorController);
     int[] selectedSensors = getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS);
     for (int pos : selectedSensors) {
       CustomSensor sensor = mSensorController.get(pos);
@@ -110,13 +189,20 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     initializeUi();
     mCpuUsageUpdateRunnable.run();
 
-    mRecordingManager.setOnRecordingFailedListener(this);
+    mRecordingManager.setOnRecordingFailedListener(this::onRecordingFailed);
 
     if (Build.VERSION.SDK_INT >= 23) {
-      if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+      if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+          | ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+          == PackageManager.PERMISSION_GRANTED) {
         onPermissionGranted();
       } else {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_AND_WRITE_FILES);
+        ActivityCompat.requestPermissions(
+            this,
+            new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE},
+            PERMISSIONS_REQUEST_READ_AND_WRITE_FILES);
       }
     } else {
       onPermissionGranted();
@@ -126,14 +212,14 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
   @Override
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if (requestCode == PERMISSIONS_REQUEST_READ_AND_WRITE_FILES && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+    if (requestCode == PERMISSIONS_REQUEST_READ_AND_WRITE_FILES
+        && (grantResults[0] | grantResults[1]) == PackageManager.PERMISSION_GRANTED) {
       onPermissionGranted();
     }
   }
 
   private void initializeUi() {
     setContentView(R.layout.recording_activity);
-
     tvSavePath = findViewById(R.id.tvSavePath);
     tvElapsedTime = findViewById(R.id.tvElapsedTime);
     tvStatus = findViewById(R.id.tvStatus);
@@ -142,137 +228,131 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     tvWrittenBytes = findViewById(R.id.tvWrittenBytes);
     ivWritingFlashLight = findViewById(R.id.ivWritingFlashLight);
     tblSensorsInfo = findViewById(R.id.tblSensorsInfo);
-
-    colorTvSavePath = tvSavePath.getTextColors();
-
     mActionBar = getSupportActionBar();
     if (mActionBar != null) {
       mActionBar.setHomeButtonEnabled(true);
       mActionBar.setDisplayHomeAsUpEnabled(true);
     }
-
-    mCurrentScreenEditor = new RecordingDashBoardViewHolder();
-    mCurrentScreenEditor.tvElapsedTime = tvElapsedTime;
-    mCurrentScreenEditor.tvStatus = tvStatus;
-    mCurrentScreenEditor.tvWrittenFrames = tvWrittenFrames;
-    mCurrentScreenEditor.tvWrittenBytes = tvWrittenBytes;
-    mCurrentScreenEditor.listTvLastHits = new HashMap<>();
-    mCurrentScreenEditor.listTvAllHits = new HashMap<>();
-    mCurrentScreenEditor.ivWritingFlashLight = ivWritingFlashLight;
+    colorTvSavePath = tvSavePath.getTextColors();
 
     // Init TableLayout
     int count = 0;
     for (CustomSensor sensor : mSensorsToRecord) {//TODO: when another moment?
       View row = getLayoutInflater().inflate(R.layout.recording_activity_details_table_row, tblSensorsInfo, false);
-
-      TextView tvName = row.findViewById(R.id.tvSensorName);
-      tvName.setText(sensor.primaryName);
-      TextView tvId = row.findViewById(R.id.tvId);
-      tvId.setText(String.valueOf(sensor.getPosition()));
-
+      SensorInfoViewHolder viewHolder = new SensorInfoViewHolder(row);
+      viewHolder.tvName.setText(sensor.primaryName);
+      viewHolder.tvId.setText(String.valueOf(sensor.getPosition()));
+      mViewHolderMap.put(sensor, viewHolder);
       tblSensorsInfo.addView(row, ++count);
-      mCurrentScreenEditor.listTvLastHits.put(sensor, row.findViewById(R.id.tvLastHits));
-      mCurrentScreenEditor.listTvAllHits.put(sensor, row.findViewById(R.id.tvAllHits));
     }
     TableRow rowAllSensors = findViewById(R.id.rowAllSensors);
-
     if (mSensorsToRecord.size() == 1) {
       rowAllSensors.setVisibility(View.GONE);
     }
-    //Still add "null" key for compatibility
-    mCurrentScreenEditor.listTvLastHits.put(null, findViewById(R.id.tvAllSensorsLastHits));
-    mCurrentScreenEditor.listTvAllHits.put(null, findViewById(R.id.tvAllSensorsAllHits));
-
-    if (mRecordingManager.isRecording()) {
-      mRecordingManager.setWidgetEditor(mCurrentScreenEditor);
-      mCpuUsageUpdateRunnable.run();
-    }
+    tvAllSensorsLastHits = rowAllSensors.findViewById(R.id.tvAllSensorsLastHits);
+    tvAllSensorsAllHits = rowAllSensors.findViewById(R.id.tvAllSensorsAllHits);
   }
 
   private void onPermissionGranted() {
     // following initializeUi()
     // Start to init the manager
     if (mRecordingManager.isRecording()) {
-      mDataFilePath = mRecordingManager.getDataFilePath();
-      startRecording();
+      recordingStartedSetUi();
     } else {
-      mDataFilePath = buildDataFilePath();
       mRecordingManager.setSensorsToRecord(mSensorsToRecord);
-      mRecordingManager.setDataFilePath(mDataFilePath);
+      mRecordingManager.setOnNewFrameListener(mOnNewFrameRunnable);
       mRecordingManager.init();
-
-      if (!mRecordingManager.initialized()) {
-        Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
-      }
     }
-    tvSavePath.setText(String.format("Saved Location: %s", mDataFilePath));
   }
 
   private String buildDataFilePath() {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+    int times = sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0);
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES, times + 1);
+    editor.apply();
 
-    return Environment.getExternalStorageDirectory() + "/sensor_data_" + sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + "_" + sdf.format(new Date()) + ".data";
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
+    return MessageFormat.format("{0}/sensor_data_{1}_{2}.data",
+        Environment.getExternalStorageDirectory(),
+        times,
+        sdf.format(new Date()));
   }
 
-  private void startRecordingManager() {
+  private void startRecording() {
     mFirstRecord = false;
     if (!mRecordingManager.initialized()) {
       Toast.makeText(RecordingActivity.this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
     } else {
-      startRecording();
+      mRecordingManager.setDataFilePath(buildDataFilePath());
       mRecordingManager.startRecording();
-
-      SharedPreferences.Editor editor = sharedPreferences.edit();
-      editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES, sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0) + 1);
-      editor.apply();
+      recordingStartedSetUi();
+      Toast.makeText(RecordingActivity.this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
     }
-  }
-
-  private void startRecording() {//won't call RecordingManager
-    tvStatus.setText(R.string.status_recording);
-    tvStatus.setTextColor(Color.RED);
-    keepScreenLongLight(true);
   }
 
   private void stopRecordingManager() {
     if (mRecordingManager.isRecording()) {
-      keepScreenLongLight(false);
       mRecordingManager.stopRecording();
-      //      tvCpuUsage.removeCallbacks(mCpuUsageUpdateRunnable);
+      recordingStoppedSetUi();
+      Toast.makeText(RecordingActivity.this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
+    } else {
+      throw new IllegalStateException();
     }
   }
 
-  @Override
-  public void onRecordingFailed() {
-    runOnUiThread(() -> Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show());
+  private void recordingStartedSetUi() {
+    tvStatus.setText(R.string.status_recording);
+    tvStatus.setTextColor(Color.RED);
+    tvSavePath.setText(String.format("Saved Location: %s", mRecordingManager.getDataFilePath()));
+    keepScreenLongLight(true);
+    startUiUpdating();
   }
 
-  @Override
-  protected void onStop() {
-    super.onStop();
-    if (isFinishing()) {
-      mRecordingManager.finish();
-    } else {
-      Logger.i("RecordingActivity Stopped");
+  private void recordingStoppedSetUi() {
+    tvStatus.setText("");
+    keepScreenLongLight(false);
+    stopUiUpdating();
+  }
+
+  public void onRecordingFailed() {
+    Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show();
+    if (mRecordingManager.isRecording()) {
+      stopUiUpdating();
     }
   }
 
   @Override
   protected void onPause() {
     super.onPause();
-    mRecordingManager.setWidgetEditor(null);//TODO: Must set free when appropriate
+    if (mRecordingManager.isRecording()) {
+      stopUiUpdating();
+    }
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-    mRecordingManager.setWidgetEditor(mCurrentScreenEditor);
+    if (mRecordingManager.isRecording()) {
+      startUiUpdating();
+    }
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.recording_activity_menu, menu);
     return true;
+  }
+
+  private void startUiUpdating() {
+    mUiTimeUpdateRunnable.run();
+    uiContinuousUpdateRunnable.run();
+    mCpuUsageUpdateRunnable.run();
+  }
+
+  private void stopUiUpdating() {
+    mHandler.removeCallbacks(mUiTimeUpdateRunnable);
+    mHandler.removeCallbacks(uiContinuousUpdateRunnable);
+    mHandler.removeCallbacks(mCpuUsageUpdateRunnable);
   }
 
   /**
@@ -291,14 +371,9 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
       case R.id.start_or_stop:
         if (mRecordingManager.isRecording()) {
           stopRecordingManager();
-          Toast.makeText(RecordingActivity.this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
           tvSavePath.setTextColor(Color.RED);
         } else {
-          if (!mFirstRecord) {
-            mRecordingManager.init();//TODO: Add Reset btn?
-          }
-          startRecordingManager();
-          Toast.makeText(RecordingActivity.this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
+          startRecording();
           tvSavePath.setTextColor(colorTvSavePath);
         }
         break;
@@ -311,33 +386,24 @@ public class RecordingActivity extends AppCompatActivity implements RecordingMan
     return super.onOptionsItemSelected(item);
   }
 
-  public void keepScreenLongLight(boolean isOpenLight) {
-    if (isOpenLight) {
+  public void keepScreenLongLight(boolean isOn) {
+    if (isOn) {
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     } else {
       getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
   }
 
-  public class RecordingDashBoardViewHolder {
-    public TextView tvElapsedTime;
-    public TextView tvStatus;
-    public TextView tvWrittenFrames;
-    public TextView tvWrittenBytes;
-    public Map<CustomSensor, TextView> listTvLastHits;
-    public Map<CustomSensor, TextView> listTvAllHits;
-    public ImageView ivWritingFlashLight;
-
-    public void runOnUiThread(Runnable runnable) {
-      mHandler.post(runnable);
-    }
-
-    public void runOnUiThread(Runnable runnable, int delay) {
-      mHandler.postDelayed(runnable, delay);
-    }
-
-    public void removeRunnable(Runnable runnable) {
-      mHandler.removeCallbacks(runnable);
+  static class SensorInfoViewHolder {
+    TextView tvName;
+    TextView tvId;
+    TextView tvLastHits;
+    TextView tvAllHits;
+    SensorInfoViewHolder(View view) {
+      tvName = view.findViewById(R.id.tvSensorName);
+      tvId = view.findViewById(R.id.tvId);
+      tvLastHits = view.findViewById(R.id.tvLastHits);
+      tvAllHits = view.findViewById(R.id.tvAllHits);
     }
   }
 }

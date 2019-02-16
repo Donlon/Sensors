@@ -18,13 +18,13 @@ public class DataFileWriter {
   /**
    * Reference from RecordingManager
    */
-  private final Map<CustomSensor, SensorEventsBuffer> mDataCacheMap;// TODO: rename it
+  private final Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;// TODO: rename it
 
   private DataOutputStream mDataFileOutputStream;
 
-  public DataFileWriter(String path, Map<CustomSensor, SensorEventsBuffer> dataCacheMap) {
+  public DataFileWriter(String path, Map<CustomSensor, SensorEventsBuffer> mDataBufferMap) {
     mFilePath = path;
-    mDataCacheMap = dataCacheMap;
+    this.mDataBufferMap = mDataBufferMap;
   }
 
   public boolean init() {
@@ -79,9 +79,9 @@ public class DataFileWriter {
     ByteArrayOutputStream singleSensorInfoBuffer = new ByteArrayOutputStream();
     DataOutputStream singleSensorInfoOS = new DataOutputStream(singleSensorInfoBuffer);
 
-    sensorsInfoOS.writeInt(mDataCacheMap.size());
+    sensorsInfoOS.writeInt(mDataBufferMap.size());
 
-    for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
+    for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
       Sensor sensor = entry.getKey().getSensor();
 
       singleSensorInfoOS.writeInt(entry.getKey().getPosition());
@@ -124,14 +124,14 @@ public class DataFileWriter {
 
   public void flush() throws IOException {
     //TODO: just sync with each ArrayList<SensorEvent>
-    synchronized (this) {
+    synchronized (mDataBufferMap) {
       //Test
       mDataFileOutputStream.write(separator);
 
       mDataFileOutputStream.writeInt(writtenFramesCount);// Index
 
       int dataGroupCount = 0;
-      for (SensorEventsBuffer dataList : mDataCacheMap.values()) {
+      for (SensorEventsBuffer dataList : mDataBufferMap.values()) {
         if (!dataList.isEmpty()) {
           dataGroupCount++;
         }
@@ -141,7 +141,7 @@ public class DataFileWriter {
       frameBufferOS.writeLong(System.currentTimeMillis());
 
       //Each data group
-      for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataCacheMap.entrySet()) {
+      for (Map.Entry<CustomSensor, SensorEventsBuffer> entry : mDataBufferMap.entrySet()) {
         if (entry.getValue().isEmpty()) {
           continue;
         }
@@ -179,9 +179,5 @@ public class DataFileWriter {
 
   public void closeFile() throws IOException {
     mDataFileOutputStream.close();
-  }
-
-  public static String formatBytes(int bytes) {
-    return bytes + " Bytes";//TODO: formatting
   }
 }

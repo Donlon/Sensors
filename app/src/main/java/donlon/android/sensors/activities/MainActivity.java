@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Switch;
 
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     Logger.d("Start");
 
     updateSwitch = findViewById(R.id.swUpdate);
-    updateSwitch.setOnCheckedChangeListener(this::onSwitchCheckedChange);
+    updateSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
 
     fabMain = findViewById(R.id.fab_main);
 
@@ -67,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     });
   }
 
-  public void onSwitchCheckedChange(CompoundButton buttonView, boolean isChecked) {
+  public void onSwitchCheckedChange(boolean isChecked) {
     if (isChecked != mIsViewing) { // actively update
       if (mIsViewing) {
         pauseViewing();
@@ -118,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onPause() {
     super.onPause();
-    if (mIsPreviewSwitchOn) {
+    if (mIsViewing) {
       pauseViewing();
     }
   }
