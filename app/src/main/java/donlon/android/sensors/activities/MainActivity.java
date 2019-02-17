@@ -8,8 +8,8 @@ import android.widget.ListView;
 import android.widget.Switch;
 
 import donlon.android.sensors.R;
-import donlon.android.sensors.SensorController;
 import donlon.android.sensors.adapters.SensorsListAdapter;
+import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 import donlon.android.sensors.utils.StorageUtils;
@@ -18,8 +18,8 @@ public class MainActivity extends AppCompatActivity {
   private SensorController mSensorController;
   private SensorsListAdapter mSensorListAdapter;
 
-  private ListView mSensorListView;
-  private Switch updateSwitch;
+  private ListView lvSensors;
+  private Switch swUpdate;
   private FloatingActionButton fabMain;
 
   private boolean mIsPreviewSwitchOn;
@@ -42,14 +42,14 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.main_activity);
     Logger.d("Start");
 
-    updateSwitch = findViewById(R.id.swUpdate);
-    updateSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
+    swUpdate = findViewById(R.id.swUpdate);
+    swUpdate.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
 
     fabMain = findViewById(R.id.fab_main);
 
-    mSensorListView = findViewById(R.id.lvSensors);
-    mSensorListView.setOnItemClickListener((parent, view, position, id) -> startSensorDetailsActivity(position));
-    mSensorListView.setAdapter(mSensorListAdapter);
+    lvSensors = findViewById(R.id.lvSensors);
+    lvSensors.setOnItemClickListener((parent, view, position, id) -> startSensorDetailsActivity(position));
+    lvSensors.setAdapter(mSensorListAdapter);
 
     fabMain.setOnClickListener(v -> {
       if (mIsViewing) {
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
       throw new IllegalStateException();
     }
     mIsViewing = true;
-    updateSwitch.setChecked(true);
+    swUpdate.setChecked(true);
     mSensorController.enableAllSensors();
     mSensorController.setOnSensorChangeListener(mSensorListAdapter);
     mSensorListAdapter.startUpdating();
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
       throw new IllegalStateException();
     }
     mIsViewing = false;
-    updateSwitch.setChecked(false);
+    swUpdate.setChecked(false);
     mSensorController.disableAllSensors();
     mSensorController.setOnSensorChangeListener(null);
     mSensorListAdapter.stopUpdating();

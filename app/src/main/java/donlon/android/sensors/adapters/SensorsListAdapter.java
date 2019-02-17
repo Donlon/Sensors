@@ -12,9 +12,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.SensorController;
+import donlon.android.sensors.sensor.CustomSensor;
+import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.SensorUtils;
 

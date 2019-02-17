@@ -11,18 +11,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.SensorController;
+import donlon.android.sensors.sensor.CustomSensor;
+import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.Logger;
 import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorDetailsActivity extends AppCompatActivity {
   private SensorController mSensorManager;
-  private boolean mIsMenuCreated = false;
-  private int mSensorPos;
   private CustomSensor mSensor;
+
+  private boolean mIsViewing = true;
+  private boolean mIsMenuCreated = false;
+  private int eventHits = 0;
 
   private TextView tvSensorPrimaryName;
   private TextView tvSensorSecondaryName;
@@ -30,7 +32,6 @@ public class SensorDetailsActivity extends AppCompatActivity {
   private TextView tvValue_2;
   private TextView tvValue_3;
   private MenuItem menuPause;
-
   private ActionBar mActionBar;
 
   private Handler mHandler = new Handler();
@@ -87,14 +88,11 @@ public class SensorDetailsActivity extends AppCompatActivity {
   }
 
   private void initializeSensor() {
-    mSensorPos = getIntent().getIntExtra("SensorPos", -1);
     mSensorManager = SensorController.getInstance();
+    int mSensorPos = getIntent().getIntExtra("SensorPos", -1);
     mSensor = mSensorManager.getSensorList().get(mSensorPos);// TODO: fashion singleton
     assert mSensor != null;
-
   }
-
-  private int eventHits = 0;
 
   public void onSensorChanged(CustomSensor sensor, SensorEvent event) {
     if (sensor != mSensor) {
@@ -120,8 +118,6 @@ public class SensorDetailsActivity extends AppCompatActivity {
       e.printStackTrace();
     }
   }
-
-  private boolean mIsViewing = true;
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {

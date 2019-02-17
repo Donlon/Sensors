@@ -1,4 +1,4 @@
-package donlon.android.sensors;
+package donlon.android.sensors.sensor;
 
 import android.content.Context;
 import android.hardware.Sensor;

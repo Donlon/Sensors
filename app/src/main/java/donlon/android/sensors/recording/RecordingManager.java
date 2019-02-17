@@ -1,4 +1,4 @@
-package donlon.android.sensors;
+package donlon.android.sensors.recording;
 
 import android.hardware.SensorEvent;
 import android.os.Handler;
@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import donlon.android.sensors.utils.DataFileWriter;
+import donlon.android.sensors.sensor.CustomSensor;
+import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.Logger;
-import donlon.android.sensors.utils.SensorEventsBuffer;
 
 public class RecordingManager {
   private SensorController mSensorController;

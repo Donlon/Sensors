@@ -22,25 +22,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:text="Elapsed Time: "
+            tools:text="Elapsed Time: "
             android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tvElapsedTime"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="00:00:30"
-            android:textSize="16dp" />
+            android:textSize="16sp"
+            tools:text="00:00:30" />
 
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="RECORDING"
+            android:text="@string/status_recording"
             android:textColor="@android:color/holo_red_light"
             android:textSize="16sp"
             android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible"
             app:layout_constraintStart_toStartOf="parent" />
     </LinearLayout>
 
@@ -63,7 +65,7 @@
             android:orientation="horizontal">
 
             <TableLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
@@ -239,7 +241,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:singleLine="false"
-        android:text="Saved Location:
+        tools:text="Saved Location:
 /sdcard/data/sensor_record_20180808XXXX.data"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"

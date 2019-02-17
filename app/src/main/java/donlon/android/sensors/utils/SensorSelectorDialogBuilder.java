@@ -10,10 +10,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.SensorController;
 import donlon.android.sensors.activities.RecordingActivity;
+import donlon.android.sensors.sensor.CustomSensor;
+import donlon.android.sensors.sensor.SensorController;
 
 import static donlon.android.sensors.activities.RecordingActivity.RECORDING_ACTIVITY_REQUEST_CODE;
 

@@ -1,4 +1,4 @@
-package donlon.android.sensors.utils;
+package donlon.android.sensors.recording;
 
 import android.hardware.Sensor;
 
@@ -10,9 +10,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import donlon.android.sensors.CustomSensor;
+import donlon.android.sensors.sensor.CustomSensor;
 
-public class DataFileWriter {
+class DataFileWriter {
   private static final int DATA_FILE_VERSION = 1;
   private String mFilePath;
   /**
@@ -22,12 +22,12 @@ public class DataFileWriter {
 
   private DataOutputStream mDataFileOutputStream;
 
-  public DataFileWriter(String path, Map<CustomSensor, SensorEventsBuffer> mDataBufferMap) {
+  DataFileWriter(String path, Map<CustomSensor, SensorEventsBuffer> mDataBufferMap) {
     mFilePath = path;
     this.mDataBufferMap = mDataBufferMap;
   }
 
-  public boolean init() {
+  boolean init() {
     if (mFilePath == null) {
       return false;
     }
@@ -122,7 +122,7 @@ public class DataFileWriter {
   private ByteArrayOutputStream frameBuffer;
   private DataOutputStream frameBufferOS;
 
-  public void flush() throws IOException {
+  void flush() throws IOException {
     //TODO: just sync with each ArrayList<SensorEvent>
     synchronized (mDataBufferMap) {
       //Test
@@ -150,7 +150,7 @@ public class DataFileWriter {
         frameBufferOS.writeInt(entry.getValue().size());
 
         for (int i = 0; i < entry.getValue().size(); i++) {
-          SensorEventAggregation event = entry.getValue().get(i);
+          SensorEvent event = entry.getValue().get(i);
           frameBufferOS.writeLong(event.timeStamp);
           frameBufferOS.writeFloat(event.accuracy);
           for (int j = 0; j < entry.getKey().dataDimension; j++) { //event.values.length
@@ -169,15 +169,15 @@ public class DataFileWriter {
     }
   }
 
-  public int getWrittenBytes() {
+  int getWrittenBytes() {
     return mDataFileOutputStream.size();
   }
 
-  public int getWrittenFrames() {
+  int getWrittenFrames() {
     return writtenFramesCount;
   }
 
-  public void closeFile() throws IOException {
+  void closeFile() throws IOException {
     mDataFileOutputStream.close();
   }
 }

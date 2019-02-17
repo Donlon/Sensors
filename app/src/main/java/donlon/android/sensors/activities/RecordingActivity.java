@@ -1,14 +1,11 @@
 package donlon.android.sensors.activities;
 
 import android.Manifest;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -24,22 +21,20 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import donlon.android.sensors.CustomSensor;
 import donlon.android.sensors.R;
-import donlon.android.sensors.RecordingManager;
-import donlon.android.sensors.SensorController;
+import donlon.android.sensors.recording.RecordingManager;
+import donlon.android.sensors.recording.SensorEventsBuffer;
+import donlon.android.sensors.sensor.CustomSensor;
+import donlon.android.sensors.sensor.SensorController;
+import donlon.android.sensors.utils.FileUtils;
 import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.Logger;
-import donlon.android.sensors.utils.SensorEventsBuffer;
 import donlon.android.sensors.utils.cpu.CpuUsage;
 import donlon.android.sensors.utils.cpu.EmptyCpuUsage;
 
@@ -47,16 +42,13 @@ public class RecordingActivity extends AppCompatActivity {
   public static final int RECORDING_ACTIVITY_REQUEST_CODE = 0xF401;
   public static final String EXTRA_SELECTED_SENSORS = "SelectedSensors";
   private final static int PERMISSIONS_REQUEST_READ_AND_WRITE_FILES = 1;
-  private final static String SHARED_PREFERENCES_RECORDING_TIMES = "recording_times";
-
-  private SharedPreferences sharedPreferences;
 
   private RecordingManager mRecordingManager;
   private SensorController mSensorController;
   private ColorStateList colorTvSavePath;
 
-  private Handler mHandler = new Handler();
   private List<CustomSensor> mSensorsToRecord = new ArrayList<>();
+  private Handler mHandler = new Handler();
 
   //UI Components
   private ActionBar mActionBar;
@@ -71,14 +63,12 @@ public class RecordingActivity extends AppCompatActivity {
   private Map<CustomSensor, SensorInfoViewHolder> mViewHolderMap = new HashMap<>();
   private TextView tvAllSensorsLastHits;
   private TextView tvAllSensorsAllHits;
-  private boolean mFirstRecord = true;
 
   private Runnable mCpuUsageUpdateRunnable = new Runnable() {
     private CpuUsage sysSummaryCpuUsage = new EmptyCpuUsage();
     private CpuUsage currentProcCpuUsage = new EmptyCpuUsage();
     private float currentProcCpuUsageValue;
     private float sysSummaryCpuUsageValue;
-
     @Override
     public void run() {
       currentProcCpuUsageValue = currentProcCpuUsage.requestCpuUsage();
@@ -119,40 +109,14 @@ public class RecordingActivity extends AppCompatActivity {
    */
   private Runnable mUiTimeUpdateRunnable = new Runnable() {
     private int time = 0;
-    private static final String C1 = " ";
-    private static final String C2 = ":";
     private boolean parity;
-
-    StringBuilder builder = new StringBuilder();
-
-    private void appendTimeChars(StringBuilder builder, int t) {
-      if (t < 10) {
-        builder.append('0');
-        builder.append(t);
-      } else {
-        builder.append(t);
-      }
-    }
-
     @Override
     public void run() {
       mHandler.postDelayed(this, 500);
-
-      appendTimeChars(builder, time / 3600);
-      builder.append(parity ? C1 : C2);
-      appendTimeChars(builder, (time % 3600) / 60);
-      builder.append(parity ? C1 : C2);
-      appendTimeChars(builder, time % 60);
-
-      builder.append(" (Estimated)");
-
-      tvElapsedTime.setText(builder.toString());
-      builder.setLength(0);
-
+      tvElapsedTime.setText(String.format("%s (Estimated)", FormatterUtils.getFormattedTime(time, parity)));
       if (parity) {
         time++;
       }
-
       parity = !parity;
     }
   };
@@ -178,7 +142,6 @@ public class RecordingActivity extends AppCompatActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Logger.i("Here we go!");
-    sharedPreferences = getSharedPreferences("Default", Context.MODE_PRIVATE);
     mSensorController = SensorController.getInstance();
     mRecordingManager = new RecordingManager(mSensorController);
     int[] selectedSensors = getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS);
@@ -265,60 +228,54 @@ public class RecordingActivity extends AppCompatActivity {
     }
   }
 
-  private String buildDataFilePath() {
-    int times = sharedPreferences.getInt(SHARED_PREFERENCES_RECORDING_TIMES, 0);
-    SharedPreferences.Editor editor = sharedPreferences.edit();
-    editor.putInt(SHARED_PREFERENCES_RECORDING_TIMES, times + 1);
-    editor.apply();
-
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
-    return MessageFormat.format("{0}/sensor_data_{1}_{2}.data",
-        Environment.getExternalStorageDirectory(),
-        times,
-        sdf.format(new Date()));
-  }
-
   private void startRecording() {
-    mFirstRecord = false;
     if (!mRecordingManager.initialized()) {
-      Toast.makeText(RecordingActivity.this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
-    } else {
-      mRecordingManager.setDataFilePath(buildDataFilePath());
-      mRecordingManager.startRecording();
-      recordingStartedSetUi();
-      Toast.makeText(RecordingActivity.this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+      return;
     }
-  }
-
-  private void stopRecordingManager() {
     if (mRecordingManager.isRecording()) {
-      mRecordingManager.stopRecording();
-      recordingStoppedSetUi();
-      Toast.makeText(RecordingActivity.this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
-    } else {
       throw new IllegalStateException();
     }
+    mRecordingManager.setDataFilePath(FileUtils.getNewDataFilePath(this));
+    mRecordingManager.startRecording();
+    recordingStartedSetUi();
+  }
+
+  private void stopRecording() {
+    if (!mRecordingManager.isRecording()) {
+      throw new IllegalStateException();
+    }
+    mRecordingManager.stopRecording();
+    recordingStoppedSetUi();
   }
 
   private void recordingStartedSetUi() {
-    tvStatus.setText(R.string.status_recording);
-    tvStatus.setTextColor(Color.RED);
+    tvStatus.setVisibility(View.VISIBLE);
+    tvSavePath.setTextColor(colorTvSavePath);
     tvSavePath.setText(String.format("Saved Location: %s", mRecordingManager.getDataFilePath()));
     keepScreenLongLight(true);
     startUiUpdating();
+    Toast.makeText(this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
   }
 
   private void recordingStoppedSetUi() {
-    tvStatus.setText("");
+    tvStatus.setVisibility(View.GONE);
+    tvSavePath.setTextColor(Color.RED);
     keepScreenLongLight(false);
     stopUiUpdating();
+    Toast.makeText(this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
   }
 
-  public void onRecordingFailed() {
-    Toast.makeText(RecordingActivity.this, "Recording failed.", Toast.LENGTH_SHORT).show();
-    if (mRecordingManager.isRecording()) {
-      stopUiUpdating();
-    }
+  private void startUiUpdating() {
+    mUiTimeUpdateRunnable.run();
+    uiContinuousUpdateRunnable.run();
+    mCpuUsageUpdateRunnable.run();
+  }
+
+  private void stopUiUpdating() {
+    mHandler.removeCallbacks(mUiTimeUpdateRunnable);
+    mHandler.removeCallbacks(uiContinuousUpdateRunnable);
+    mHandler.removeCallbacks(mCpuUsageUpdateRunnable);
   }
 
   @Override
@@ -337,22 +294,17 @@ public class RecordingActivity extends AppCompatActivity {
     }
   }
 
+  public void onRecordingFailed() {
+    Toast.makeText(this, "Recording failed.", Toast.LENGTH_SHORT).show();
+    if (mRecordingManager.isRecording()) {
+      stopUiUpdating();
+    }
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.recording_activity_menu, menu);
     return true;
-  }
-
-  private void startUiUpdating() {
-    mUiTimeUpdateRunnable.run();
-    uiContinuousUpdateRunnable.run();
-    mCpuUsageUpdateRunnable.run();
-  }
-
-  private void stopUiUpdating() {
-    mHandler.removeCallbacks(mUiTimeUpdateRunnable);
-    mHandler.removeCallbacks(uiContinuousUpdateRunnable);
-    mHandler.removeCallbacks(mCpuUsageUpdateRunnable);
   }
 
   /**
@@ -370,11 +322,9 @@ public class RecordingActivity extends AppCompatActivity {
         break;
       case R.id.start_or_stop:
         if (mRecordingManager.isRecording()) {
-          stopRecordingManager();
-          tvSavePath.setTextColor(Color.RED);
+          stopRecording();
         } else {
           startRecording();
-          tvSavePath.setTextColor(colorTvSavePath);
         }
         break;
       case android.R.id.home: // back button
