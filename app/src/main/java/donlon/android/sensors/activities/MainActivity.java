@@ -2,10 +2,12 @@ package donlon.android.sensors.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
 import android.widget.Switch;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import donlon.android.sensors.R;
 import donlon.android.sensors.adapters.SensorsListAdapter;

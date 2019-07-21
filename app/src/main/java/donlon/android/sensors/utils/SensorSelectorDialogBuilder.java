@@ -3,9 +3,10 @@ package donlon.android.sensors.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +81,7 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
 
   private void onPositiveButtonClick() {
     List<Integer> selectedPos = new ArrayList<>();
-    for (int i = 1; i < selectedSensorArray.length; i++) {
+    for (int i = 0; i < selectedSensorArray.length - 1; i++) {
       if (selectedSensorArray[i]) {
         selectedPos.add(mSensorController.get(i).getPosition());
       }
