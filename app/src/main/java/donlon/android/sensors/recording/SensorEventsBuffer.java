@@ -27,7 +27,7 @@ public class SensorEventsBuffer {
     add(event.values, event.accuracy, event.timestamp);
   }
 
-  private void add(float values[], float accuracy, long timeStamp) {
+  private void add(float[] values, float accuracy, long timeStamp) {
     if (mCurrentPosition < mBuffer.size()) {
       mBuffer.get(mCurrentPosition).set(values, accuracy, timeStamp);
     } else {

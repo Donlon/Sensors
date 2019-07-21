@@ -30,6 +30,7 @@ import java.util.Map;
 
 import donlon.android.sensors.R;
 import donlon.android.sensors.recording.RecordingManager;
+import donlon.android.sensors.recording.RecordingManagerImpl;
 import donlon.android.sensors.recording.SensorEventsBuffer;
 import donlon.android.sensors.sensor.CustomSensor;
 import donlon.android.sensors.sensor.SensorController;
@@ -146,7 +147,7 @@ public class RecordingActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     Logger.i("Here we go!");
     mSensorController = SensorController.getInstance();
-    mRecordingManager = new RecordingManager(mSensorController);
+    mRecordingManager = new RecordingManagerImpl(mSensorController);
     int[] selectedSensors = getIntent().getIntArrayExtra(EXTRA_SELECTED_SENSORS);
     for (int pos : selectedSensors) {
       CustomSensor sensor = mSensorController.get(pos);
@@ -233,7 +234,7 @@ public class RecordingActivity extends AppCompatActivity {
 
   private void startRecording() {
     if (!mRecordingManager.initialized()) {
-      Toast.makeText(this, "RecordingManager init failed.", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "RecordingManagerImpl init failed.", Toast.LENGTH_SHORT).show();
       return;
     }
     if (mRecordingManager.isRecording()) {
@@ -258,7 +259,7 @@ public class RecordingActivity extends AppCompatActivity {
     tvSavePath.setText(String.format("Saved Location: %s", mRecordingManager.getDataFilePath()));
     keepScreenLongLight(true);
     startUiUpdating();
-    Toast.makeText(this, "RecordingManager started.", Toast.LENGTH_SHORT).show();
+    Toast.makeText(this, "RecordingManagerImpl started.", Toast.LENGTH_SHORT).show();
   }
 
   private void recordingStoppedSetUi() {
@@ -266,7 +267,7 @@ public class RecordingActivity extends AppCompatActivity {
     tvSavePath.setTextColor(Color.RED);
     keepScreenLongLight(false);
     stopUiUpdating();
-    Toast.makeText(this, "RecordingManager stopped.", Toast.LENGTH_SHORT).show();
+    Toast.makeText(this, "RecordingManagerImpl stopped.", Toast.LENGTH_SHORT).show();
   }
 
   private void startUiUpdating() {

@@ -1,11 +1,11 @@
 package donlon.android.sensors.recording;
 
 class SensorEvent {
-  float values[];
+  float[] values;
   float accuracy;
   long timeStamp;
 
-  SensorEvent(float values[], float accuracy, long timeStamp) {
+  SensorEvent(float[] values, float accuracy, long timeStamp) {
     this.values = new float[values.length];
     this.set(values, accuracy, timeStamp);
   }

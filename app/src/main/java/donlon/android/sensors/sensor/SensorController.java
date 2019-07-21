@@ -108,7 +108,6 @@ public class SensorController {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
   };
 
