@@ -29,6 +29,7 @@ public class SensorController {
   public static SensorController create(Context context) {
     return singleTonInstance = new SensorController(context);
   }
+
   /**
    * SingleTon instance
    */

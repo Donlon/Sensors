@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,7 +20,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:text="@string/back"/>
+            android:text="@string/back" />
 
         <Button
             android:id="@+id/bthRecode"
@@ -30,7 +29,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:text="@string/record"/>
+            android:text="@string/record" />
 
         <Button
             android:id="@+id/butnPause"
@@ -40,7 +39,7 @@
             android:layout_marginEnd="15dp"
             android:paddingEnd="15dp"
             android:paddingStart="15dp"
-            android:text="@string/pause"/>
+            android:text="@string/pause" />
 
     </LinearLayout>
 
@@ -48,8 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="119dp"
@@ -60,26 +58,26 @@
                 android:id="@+id/tvValue_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"/>
+                android:text="TextView" />
 
             <TextView
                 android:id="@+id/tvValue_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"/>
+                android:text="TextView" />
 
             <TextView
                 android:id="@+id/tvValue_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextViewTextViewTextViewTextViewTextViewTextViewTextViewTextView"/>
+                android:text="TextViewTextViewTextViewTextViewTextViewTextViewTextViewTextView" />
         </LinearLayout>
 
         <donlon.android.sensors.views.SensorDataSurfaceView
             android:id="@+id/surfaceView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
     </LinearLayout>
 
@@ -99,7 +97,7 @@
             android:layout_weight="89"
             android:text="@string/sensor_name"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvSensorSecondaryName"
@@ -109,7 +107,7 @@
             android:layout_weight="144"
             android:text="@string/sensor_name_2"
             android:textAlignment="viewEnd"
-            tools:ignore="RtlCompat"/>
+            tools:ignore="RtlCompat" />
     </LinearLayout>
 
 </LinearLayout>

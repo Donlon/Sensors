@@ -10,6 +10,7 @@ public class SensorEventsBuffer {
   private int mCount = 0;
 
   private int mLastFrameSize = 0;
+
   SensorEventsBuffer(int dataDimension) {
     this(100, dataDimension);
   }

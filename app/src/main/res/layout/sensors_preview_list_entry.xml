@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,8 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:baselineAligned="false"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,7 +31,7 @@
                 android:layout_weight="1"
                 android:text="@string/sensor_primary_name"
                 android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvSensorSecondaryName"
@@ -41,7 +39,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginEnd="10dp"
                 android:gravity="top"
-                android:text="@string/sensor_secondary_name"/>
+                android:text="@string/sensor_secondary_name" />
 
         </LinearLayout>
 
@@ -55,7 +53,7 @@
             android:layout_weight="1"
             android:text=""
             android:textSize="14sp"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <View
             android:id="@+id/view"
@@ -65,7 +63,7 @@
             android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:background="@android:color/background_dark"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -81,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/data_prefix"
                 android:textSize="@dimen/sensors_preview_list_data_font_size"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvSensorData"
@@ -101,7 +99,7 @@
                 android:gravity="bottom"
                 android:text="@string/data_unit"
                 android:textAlignment="viewEnd"
-                tools:ignore="RtlCompat"/>
+                tools:ignore="RtlCompat" />
 
         </LinearLayout>
     </LinearLayout>
@@ -122,7 +120,7 @@
             android:layout_weight="1"
             android:checked="true"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
+            android:paddingRight="10dp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -4,9 +4,9 @@
     <item
         android:id="@+id/menuRecord"
         android:icon="@android:drawable/ic_menu_slideshow"
-        android:title="@string/record"/>
+        android:title="@string/record" />
     <item
         android:id="@+id/menuPause"
         android:icon="@android:drawable/ic_menu_save"
-        android:title="@string/pause"/>
+        android:title="@string/pause" />
 </menu>

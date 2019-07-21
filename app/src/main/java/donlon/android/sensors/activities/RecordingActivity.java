@@ -70,6 +70,7 @@ public class RecordingActivity extends AppCompatActivity {
     private CpuUsage currentProcCpuUsage = new EmptyCpuUsage();
     private float currentProcCpuUsageValue;
     private float sysSummaryCpuUsageValue;
+
     @Override
     public void run() {
       currentProcCpuUsageValue = currentProcCpuUsage.requestCpuUsage();
@@ -111,6 +112,7 @@ public class RecordingActivity extends AppCompatActivity {
   private Runnable mUiTimeUpdateRunnable = new Runnable() {
     private int time = 0;
     private boolean parity;
+
     @Override
     public void run() {
       mHandler.postDelayed(this, 500);
@@ -350,6 +352,7 @@ public class RecordingActivity extends AppCompatActivity {
     TextView tvId;
     TextView tvLastHits;
     TextView tvAllHits;
+
     SensorInfoViewHolder(View view) {
       tvName = view.findViewById(R.id.tvSensorName);
       tvId = view.findViewById(R.id.tvId);

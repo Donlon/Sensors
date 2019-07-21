@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:text="@string/value_no_data"/>
+        android:text="@string/value_no_data" />
 
     <TextView
         android:id="@+id/tvSensorName"
@@ -24,11 +24,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:text="@string/value_no_data"/>
+        android:text="@string/value_no_data" />
 
     <TextView
         android:id="@+id/tvAllHits"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/value_no_data"/>
+        android:text="@string/value_no_data" />
 </TableRow>

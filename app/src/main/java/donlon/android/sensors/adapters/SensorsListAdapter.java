@@ -18,7 +18,7 @@ import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.SensorListViewHolder,CustomSensor>
+public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.SensorListViewHolder, CustomSensor>
     implements CompoundButton.OnCheckedChangeListener, SensorController.OnSensorChangeListener {
   private float[][] mSensorDataCache;
 

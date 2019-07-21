@@ -3,10 +3,10 @@
 
     <item
         android:id="@+id/set_storage_folder"
-        android:title="@string/set_storage_path"/>
+        android:title="@string/set_storage_path" />
     <item
         android:id="@+id/set_delay"
-        android:title="@string/set_recording_delay"/>
+        android:title="@string/set_recording_delay" />
     <item
         android:id="@+id/start_or_stop"
         android:title="@string/start_or_stop" />
