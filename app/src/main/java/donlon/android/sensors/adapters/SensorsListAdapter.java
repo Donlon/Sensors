@@ -1,71 +1,59 @@
 package donlon.android.sensors.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.os.Handler;
+import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.Arrays;
 import java.util.List;
 
 import donlon.android.sensors.R;
+import donlon.android.sensors.activities.SensorDetailsActivity;
 import donlon.android.sensors.sensor.CustomSensor;
 import donlon.android.sensors.sensor.SensorController;
 import donlon.android.sensors.utils.FormatterUtils;
 import donlon.android.sensors.utils.SensorUtils;
 
-public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.SensorListViewHolder, CustomSensor>
+public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.ViewHolder>
     implements CompoundButton.OnCheckedChangeListener, SensorController.OnSensorChangeListener {
-  private float[][] mSensorDataCache;
-
-  private int mSensorCount;
-
-  private Handler mHandler = new Handler();
 
   private Runnable mUpdaterRunnable = new Runnable() {
     @Override
     public void run() {
       for (int i = 0; i < mSensorCount; i++) {
         if (mSensorDataCache[i] != null && mSensorDataCache[i].length > 0) {
-          SensorListViewHolder viewHolder = getViewHolder(i);
-          if (mSensorDataCache[i].length == 3) {
-            viewHolder.tvData.setText(FormatterUtils.format3dData(mSensorDataCache[i]));
-          } else {
-            viewHolder.tvData.setText(String.valueOf(mSensorDataCache[i][0]));
-          }
+          notifyItemChanged(i, mSensorDataCache[i]);
         }
       }
       mHandler.postDelayed(this, 20);
     }
   };
 
+  private Handler mHandler = new Handler(Looper.getMainLooper());
+  private float[][] mSensorDataCache;
+
+  private Context mContext;
+  private int mSensorCount;
+  private List<CustomSensor> mSensorList;
+
   public SensorsListAdapter(Context context, List<CustomSensor> sensorList) {
-    super(context, R.layout.sensors_preview_list_entry, sensorList);
-    super.setViewHolderCreator(SensorListViewHolder::new);
-    super.setViewBinder((position, viewHolder, data) -> bindData(viewHolder, data));
-    super.createViews();
+    mContext = context;
     mSensorCount = sensorList.size();
+    mSensorList = sensorList;
     mSensorDataCache = new float[mSensorCount][];
-  }
-
-  private void bindData(SensorListViewHolder viewHolder, CustomSensor data) {
-    Sensor sensor = data.getSensor();
-    viewHolder.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getType()));
-    viewHolder.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getType()));
-    viewHolder.tvUnit.setText(SensorUtils.getDataUnit(sensor.getType()));
-
-    if (data.dataDimension == 3) {
-      if (data.is3dData()) {
-        viewHolder.tvDataPrefix.setText(R.string.data_prefix_3d);
-      }
-      viewHolder.tvDataPrefix.setText(R.string.data_prefix_3d);
-    } else {
-      viewHolder.tvDataPrefix.setVisibility(View.GONE);
-    }
   }
 
   /**
@@ -88,41 +76,100 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
   }
 
   //TODO: clean codes below.
-  private OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
+//  private OnSensorsListCbxCheckedListener mOnCbxCheckedListener;
 
-  public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener) {
-    mOnCbxCheckedListener = listener;
-  }
+//  public void setOnCbxCheckedListener(OnSensorsListCbxCheckedListener listener) {
+//    mOnCbxCheckedListener = listener;
+//  }
 
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-    for (SensorListViewHolder viewHolder : getViewHolderList()) {
-      if (viewHolder.cbxEnabled == buttonView) {
-        if (mOnCbxCheckedListener != null) {
-          mOnCbxCheckedListener.OnSensorsListCbxChecked(viewHolder.position, isChecked);
-          break;
-        }
+//    for (SensorListViewHolder viewHolder : getViewHolderList()) {
+//      if (viewHolder.cbxEnabled == buttonView) {
+//        if (mOnCbxCheckedListener != null) {
+//          mOnCbxCheckedListener.OnSensorsListCbxChecked(viewHolder.position, isChecked);
+//          break;
+//        }
+//      }
+//    }
+  }
+
+//  public void enableAllCheckBoxes() {
+//    for (SensorListViewHolder viewHolder : getViewHolderList()) {
+//      viewHolder.cbxEnabled.setEnabled(true);
+//    }
+//  }
+
+//  public void disableAllCheckBoxes() {
+//    for (SensorListViewHolder viewHolder : getViewHolderList()) {
+//      viewHolder.cbxEnabled.setEnabled(false);
+//    }
+//  }
+
+//  public interface OnSensorsListCbxCheckedListener {
+//    void OnSensorsListCbxChecked(int pos, boolean selected);
+//  }
+
+  @NonNull
+  @Override
+  public SensorsListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    View v = LayoutInflater.from(parent.getContext())
+        .inflate(R.layout.sensors_preview_list_entry, parent, false);
+    return new ViewHolder(v);
+  }
+
+  private void startSensorDetailsActivity(int position) {
+    Intent intent = new Intent(mContext, SensorDetailsActivity.class);
+    intent.putExtra("SensorPos", position);
+    mContext.startActivity(intent);
+  }
+
+  @Override
+  public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+  }
+
+  @Override
+  public void onBindViewHolder(@NonNull ViewHolder holder, int position,
+                               @NonNull List<Object> payloads) {
+    CustomSensor customSensor = mSensorList.get(position);
+    if (payloads.isEmpty()) {
+      initView(holder, customSensor);
+    } else {
+      float[] data = (float[]) payloads.get(0);
+      updateView(holder, data);
+    }
+  }
+
+  private void initView(@NonNull ViewHolder holder, CustomSensor customSensor) {
+    Sensor sensor = customSensor.getSensor();
+    holder.tvPrimaryName.setText(SensorUtils.getSensorNameByType(sensor.getType()));
+    holder.tvSecondaryName.setText(SensorUtils.getSensorEnglishNameByType(sensor.getType()));
+    holder.tvUnit.setText(SensorUtils.getDataUnit(sensor.getType()));
+    if (customSensor.dataDimension == 3) {
+      if (customSensor.is3dData()) {
+        holder.tvDataPrefix.setText(R.string.data_prefix_3d);
       }
+      holder.tvDataPrefix.setText(R.string.data_prefix_3d);
+    } else {
+      holder.tvDataPrefix.setVisibility(View.GONE);
+    }
+    holder.itemView.setOnClickListener(v -> startSensorDetailsActivity(holder.getAdapterPosition()));
+  }
+
+  private void updateView(@NonNull ViewHolder holder, float[] data) {
+    if (data.length == 3) {
+      holder.tvData.setText(FormatterUtils.format3dData(data));
+    } else {
+      holder.tvData.setText(Arrays.toString(data));
     }
   }
 
-  public void enableAllCheckBoxes() {
-    for (SensorListViewHolder viewHolder : getViewHolderList()) {
-      viewHolder.cbxEnabled.setEnabled(true);
-    }
+  @Override
+  public int getItemCount() {
+    return mSensorCount;
   }
 
-  public void disableAllCheckBoxes() {
-    for (SensorListViewHolder viewHolder : getViewHolderList()) {
-      viewHolder.cbxEnabled.setEnabled(false);
-    }
-  }
-
-  public interface OnSensorsListCbxCheckedListener {
-    void OnSensorsListCbxChecked(int pos, boolean selected);
-  }
-
-  static class SensorListViewHolder extends DataBinderAdapter.ViewHolder {
+  static class ViewHolder extends RecyclerView.ViewHolder {
     TextView tvPrimaryName;
     TextView tvSecondaryName;
     TextView tvInfo;
@@ -132,8 +179,8 @@ public class SensorsListAdapter extends DataBinderAdapter<SensorsListAdapter.Sen
     CheckBox cbxEnabled;
     LinearLayout layoutRight;
 
-    SensorListViewHolder(int position, View rootView) {
-      super(position, rootView);
+    ViewHolder(View rootView) {
+      super(rootView);
       tvPrimaryName = rootView.findViewById(R.id.tvSensorPrimaryName);
       tvSecondaryName = rootView.findViewById(R.id.tvSensorSecondaryName);
       tvInfo = rootView.findViewById(R.id.tvSensorInfo);

@@ -1,11 +1,13 @@
 package donlon.android.sensors.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ListView;
 import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -20,9 +22,7 @@ public class MainActivity extends AppCompatActivity {
   private SensorController mSensorController;
   private SensorsListAdapter mSensorListAdapter;
 
-  private ListView lvSensors;
   private Switch swUpdate;
-  private FloatingActionButton fabMain;
 
   private boolean mIsPreviewSwitchOn;
   private boolean mIsViewing = false;
@@ -47,11 +47,17 @@ public class MainActivity extends AppCompatActivity {
     swUpdate = findViewById(R.id.swUpdate);
     swUpdate.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
 
-    fabMain = findViewById(R.id.fab_main);
+    FloatingActionButton fabMain = findViewById(R.id.fab_main);
 
-    lvSensors = findViewById(R.id.lvSensors);
-    lvSensors.setOnItemClickListener((parent, view, position, id) -> startSensorDetailsActivity(position));
-    lvSensors.setAdapter(mSensorListAdapter);
+    RecyclerView sensorList = findViewById(R.id.lvSensors);
+
+    LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+    layoutManager.setOrientation(RecyclerView.VERTICAL);
+    sensorList.setLayoutManager(layoutManager);
+//    sensorList.setOnItemClickListener((parent, view, position, id) -> startSensorDetailsActivity(position));
+    sensorList.setAdapter(mSensorListAdapter);
+    sensorList.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
+    sensorList.setItemAnimator(new DefaultItemAnimator());
 
     fabMain.setOnClickListener(v -> {
       if (mIsViewing) {
@@ -78,12 +84,6 @@ public class MainActivity extends AppCompatActivity {
       StorageUtils.saveDefaultViewingState(this, isChecked);
       mIsPreviewSwitchOn = isChecked;
     }
-  }
-
-  private void startSensorDetailsActivity(int position) {
-    Intent intent = new Intent(MainActivity.this, SensorDetailsActivity.class);
-    intent.putExtra("SensorPos", position);
-    startActivity(intent);
   }
 
   private void resumeViewing() {
