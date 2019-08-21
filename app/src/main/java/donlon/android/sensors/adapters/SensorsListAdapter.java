@@ -9,15 +9,12 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Arrays;
 import java.util.List;
 
 import donlon.android.sensors.R;
@@ -38,7 +35,7 @@ public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.
           notifyItemChanged(i, mSensorDataCache[i]);
         }
       }
-      mHandler.postDelayed(this, 20);
+      mHandler.postDelayed(this, 200);
     }
   };
 
@@ -120,7 +117,7 @@ public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.
 
   private void startSensorDetailsActivity(int position) {
     Intent intent = new Intent(mContext, SensorDetailsActivity.class);
-    intent.putExtra("SensorPos", position);
+    intent.putExtra(SensorDetailsActivity.EXTRA_TAG_SENSOR_POS, position);
     mContext.startActivity(intent);
   }
 
@@ -132,8 +129,9 @@ public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.
   public void onBindViewHolder(@NonNull ViewHolder holder, int position,
                                @NonNull List<Object> payloads) {
     CustomSensor customSensor = mSensorList.get(position);
-    if (payloads.isEmpty()) {
+    if (payloads.isEmpty()) { // TODO: it doesn't work fine
       initView(holder, customSensor);
+      updateView(holder, new float[0]);
     } else {
       float[] data = (float[]) payloads.get(0);
       updateView(holder, data);
@@ -160,7 +158,7 @@ public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.
     if (data.length == 3) {
       holder.tvData.setText(FormatterUtils.format3dData(data));
     } else {
-      holder.tvData.setText(Arrays.toString(data));
+      holder.tvData.setText(FormatterUtils.formatVector(data));
     }
   }
 
@@ -172,23 +170,23 @@ public class SensorsListAdapter extends RecyclerView.Adapter<SensorsListAdapter.
   static class ViewHolder extends RecyclerView.ViewHolder {
     TextView tvPrimaryName;
     TextView tvSecondaryName;
-    TextView tvInfo;
+    //    TextView tvInfo;
     TextView tvDataPrefix;
     TextView tvData;
     TextView tvUnit;
-    CheckBox cbxEnabled;
-    LinearLayout layoutRight;
+//    CheckBox cbxEnabled;
+//    LinearLayout layoutRight;
 
     ViewHolder(View rootView) {
       super(rootView);
       tvPrimaryName = rootView.findViewById(R.id.tvSensorPrimaryName);
       tvSecondaryName = rootView.findViewById(R.id.tvSensorSecondaryName);
-      tvInfo = rootView.findViewById(R.id.tvSensorInfo);
+//      tvInfo = rootView.findViewById(R.id.tvSensorInfo);
       tvData = rootView.findViewById(R.id.tvSensorData);
       tvDataPrefix = rootView.findViewById(R.id.tvSensorDataPrefix);
       tvUnit = rootView.findViewById(R.id.tvSensorDataUnit);
-      layoutRight = rootView.findViewById(R.id.layoutRight);
-      cbxEnabled = rootView.findViewById(R.id.cbxEnabled);
+//      layoutRight = rootView.findViewById(R.id.layoutRight);
+//      cbxEnabled = rootView.findViewById(R.id.cbxEnabled);
     }
   }
 }

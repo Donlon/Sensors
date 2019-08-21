@@ -56,24 +56,24 @@
 
         <TextView
             android:id="@+id/tvValue_1"
+            tools:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tvValue_2"
+            tools:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tvValue_3"
+            tools:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
+            android:layout_weight="1" />
     </LinearLayout>
 
     <LinearLayout
@@ -91,7 +91,7 @@
             android:layout_height="match_parent"
             android:layout_weight="89"
             android:gravity="bottom"
-            android:text="@string/sensor_primary_name"
+            tools:text="时间传感器"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -102,7 +102,7 @@
             android:layout_gravity="bottom|clip_horizontal"
             android:layout_weight="144"
             android:gravity="clip_vertical"
-            android:text="@string/sensor_secondary_name"
+            tools:text="Time Sensor"
             android:textAlignment="viewEnd"
             tools:ignore="RtlCompat" />
     </LinearLayout>

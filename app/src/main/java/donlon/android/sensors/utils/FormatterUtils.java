@@ -5,7 +5,21 @@ public class FormatterUtils {
   private static final char C2 = ':';
 
   public static String format3dData(float[] val) {
-    return String.valueOf(val[0]) + "\n" + String.valueOf(val[1]) + "\n" + String.valueOf(val[2]);
+    return val[0] + "\n" + val[1] + "\n" + val[2];
+  }
+
+  public static String formatVector(float[] val) {
+    if (val == null || val.length == 0) {
+      return "";
+    }
+    if (val.length == 1) {
+      return String.valueOf(val[0]);
+    }
+    StringBuilder sb = new StringBuilder(String.valueOf(val[0]));
+    for (int i = 1; i < val.length; i++) {
+      sb.append(", ").append(val[i]);
+    }
+    return sb.toString();
   }
 
   public static String formatBytes(int bytes) {

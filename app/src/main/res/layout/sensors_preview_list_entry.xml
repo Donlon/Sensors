@@ -4,124 +4,90 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:paddingTop="4dp"
     android:paddingBottom="4dp"
-    android:paddingTop="4dp">
+    tools:ignore="NestedWeights">
+
+    <!--<TextView-->
+    <!--android:id="@+id/tvSensorInfo"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginStart="20dp"-->
+    <!--android:layout_marginEnd="10dp"-->
+    <!--android:layout_marginBottom="2dp"-->
+    <!--android:layout_weight="1"-->
+    <!--android:text=""-->
+    <!--android:textSize="14sp"-->
+    <!--android:visibility="gone" />-->
+
+    <!--<View-->
+    <!--android:id="@+id/view"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="1dp"-->
+    <!--android:layout_marginStart="10dp"-->
+    <!--android:layout_marginEnd="10dp"-->
+    <!--android:layout_weight="1"-->
+    <!--android:background="@android:color/background_dark"-->
+    <!--android:visibility="gone" />-->
+
+    <TextView
+        android:id="@+id/tvSensorPrimaryName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_weight="1"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="时间传感器" />
+
+    <TextView
+        android:id="@+id/tvSensorSecondaryName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:gravity="top"
+        android:textAlignment="textEnd"
+        android:textSize="12sp"
+        tools:text="Time Sensor" />
 
     <LinearLayout
-        android:id="@+id/layoutData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:baselineAligned="false"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tvSensorPrimaryName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:text="@string/sensor_primary_name"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvSensorSecondaryName"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="10dp"
-                android:gravity="top"
-                android:text="@string/sensor_secondary_name" />
-
-        </LinearLayout>
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
 
         <TextView
-            android:id="@+id/tvSensorInfo"
-            android:layout_width="match_parent"
+            android:id="@+id/tvSensorDataPrefix"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="20dp"
-            android:layout_weight="1"
-            android:text=""
-            android:textSize="14sp"
-            android:visibility="gone" />
+            android:textSize="@dimen/sensors_preview_list_data_font_size"
+            android:textStyle="bold"
+            tools:text="x=\ny=\nz=" />
 
-        <View
-            android:id="@+id/view"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:background="@android:color/background_dark"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tvSensorData"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:gravity="bottom"
-            android:orientation="horizontal"
-            android:paddingStart="20dp">
+            android:textSize="@dimen/sensors_preview_list_data_font_size"
+            tools:text="1.00000000\n-1.00000000\n2.30000000" />
 
-            <TextView
-                android:id="@+id/tvSensorDataPrefix"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/data_prefix"
-                android:textSize="@dimen/sensors_preview_list_data_font_size"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvSensorData"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/data"
-                android:textSize="@dimen/sensors_preview_list_data_font_size" />
-
-            <TextView
-                android:id="@+id/tvSensorDataUnit"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:gravity="bottom"
-                android:text="@string/data_unit"
-                android:textAlignment="viewEnd"
-                tools:ignore="RtlCompat" />
-
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/layoutRight"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <CheckBox
-            android:id="@+id/cbxEnabled"
+        <TextView
+            android:id="@+id/tvSensorDataUnit"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:layout_weight="1"
-            android:checked="true"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="bottom"
+            android:textAlignment="viewEnd"
+            tools:ignore="RtlCompat"
+            tools:text="m/s²" />
     </LinearLayout>
-
 </LinearLayout>
-

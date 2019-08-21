@@ -38,5 +38,6 @@
     <string name="status_recording">RECORDING</string>
     <string name="set_recording_delay">Set Recording Delay</string>
     <string name="start_or_stop">Start/Stop</string>
+    <string name="text_all_sensor">All Sensors</string>
 
 </resources>

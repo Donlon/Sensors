@@ -8,6 +8,8 @@ import donlon.android.sensors.sensor.CustomSensor;
 public interface RecordingManager {
   RecordingManager setSensorsToRecord(List<CustomSensor> sensorsToRecord);
 
+  RecordingManager setOnNewFrameListener(Runnable onNewFrameListener);
+
   void init();
 
   void startRecording();
@@ -29,6 +31,4 @@ public interface RecordingManager {
   boolean initialized();
 
   void setOnRecordingFailedListener(Runnable listener);
-
-  void setOnNewFrameListener(Runnable onNewFrameListener);
 }

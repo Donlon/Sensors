@@ -26,7 +26,6 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
   private static OnRecordingFinishListener mOnRecordingFinishListener;
 
   private boolean[] selectedSensorArray;
-  //  private Set<CustomSensor> selectedSensors = new ArraySet<>();
 
   public SensorSelectorDialogBuilder(@NonNull Context context, SensorController sensorController) {
     super(context);
@@ -44,7 +43,7 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
     int size = mSensorController.getSensorList().size();
     selectedSensorArray = new boolean[size + 1];
     sensorNameList = new String[size + 1];
-    sensorNameList[0] = "All Sensors";//TODO: i18n
+    sensorNameList[0] = getContext().getString(R.string.text_all_sensor);//TODO: i18n
     for (int i = 0; i < selectedSensorArray.length; i++) {
       selectedSensorArray[i] = false;
       if (i != 0) {
@@ -58,7 +57,7 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
     return this;
   }
 
-  public SensorSelectorDialogBuilder setOnRecordingFinishListener(OnRecordingFinishListener onRecordingFinishListener) {
+  public SensorSelectorDialogBuilder setOnCancelListener(OnRecordingFinishListener onRecordingFinishListener) {
     mOnRecordingFinishListener = onRecordingFinishListener;
     return this;
   }
@@ -132,7 +131,10 @@ public class SensorSelectorDialogBuilder extends AlertDialog.Builder {
   public AlertDialog create() {
     boolean selectedAll = true;
     for (int i = 1; i < selectedSensorArray.length; i++) {
-      selectedAll &= selectedSensorArray[i];
+      if (!selectedSensorArray[i]) {
+        selectedAll = false;
+        break;
+      }
     }
     selectedSensorArray[0] = selectedAll; // duplicated
 

@@ -18,34 +18,41 @@ class DataFileWriterImpl implements DataFileWriter {
   /**
    * Reference from RecordingManagerImpl
    */
-  private final Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;// TODO: rename it
+  private Map<CustomSensor, SensorEventsBuffer> mDataBufferMap;// TODO: rename it
+
+  private final Object lock = new int[0];
 
   private DataOutputStream mDataFileOutputStream;
 
-  DataFileWriterImpl(String path, Map<CustomSensor, SensorEventsBuffer> mDataBufferMap) {
+  DataFileWriterImpl(String path) {
     mFilePath = path;
-    this.mDataBufferMap = mDataBufferMap;
   }
 
-  public boolean init() {
+  @Override
+  public void setBuffer(Map<CustomSensor, SensorEventsBuffer> buffer) {
+    mDataBufferMap = buffer;
+  }
+
+  public Object acquireLockObject() {
+    return lock;
+  }
+
+  public boolean init() throws IOException {
     if (mFilePath == null) {
       return false;
     }
     File file = new File(mFilePath);
-    try {
-      if (!file.exists()) {
-        if (!file.createNewFile()) {
-          return false;
-        }
-      } else {
-        if (!file.isFile()) {
-          return false;
-        }
+
+    if (!file.exists()) {
+      if (!file.createNewFile()) {
+        return false;
       }
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
+    } else {
+      if (!file.isFile()) {
+        return false;
+      }
     }
+
     try {
       mDataFileOutputStream = new DataOutputStream(new FileOutputStream(file));
     } catch (FileNotFoundException e) {
@@ -53,17 +60,11 @@ class DataFileWriterImpl implements DataFileWriter {
     }
 
     // Write MetaInfo
-    try {
-      mDataFileOutputStream.writeBytes("DonlonDataFile\0\0");
-      mDataFileOutputStream.write(new byte[]{0x12, 0x34, 0x56, 0x78, 0, 0, 0, 0, 0, 0, 0, 0});
-      mDataFileOutputStream.writeInt(DATA_FILE_VERSION);
+    mDataFileOutputStream.writeBytes("DonlonDataFile\0\0");
+    mDataFileOutputStream.write(new byte[]{0x12, 0x34, 0x56, 0x78, 0, 0, 0, 0, 0, 0, 0, 0});
+    mDataFileOutputStream.writeInt(DATA_FILE_VERSION);
 
-      appendSensorsInfo(mDataFileOutputStream);
-
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    }
+    appendSensorsInfo(mDataFileOutputStream);
 
     frameBuffer = new ByteArrayOutputStream();
     frameBufferOS = new DataOutputStream(frameBuffer);
@@ -123,7 +124,7 @@ class DataFileWriterImpl implements DataFileWriter {
 
   public void flush() throws IOException {
     //TODO: just sync with each ArrayList<SensorEvent>
-    synchronized (mDataBufferMap) {
+    synchronized (lock) {
       //Test
       mDataFileOutputStream.write(separator);
 

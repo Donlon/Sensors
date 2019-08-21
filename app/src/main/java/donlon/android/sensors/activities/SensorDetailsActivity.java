@@ -20,6 +20,9 @@ import donlon.android.sensors.utils.SensorSelectorDialogBuilder;
 import donlon.android.sensors.utils.SensorUtils;
 
 public class SensorDetailsActivity extends AppCompatActivity {
+  public static final String EXTRA_TAG_SENSOR_POS = "SensorPos";
+
+
   private SensorController mSensorManager;
   private CustomSensor mSensor;
 
@@ -90,7 +93,7 @@ public class SensorDetailsActivity extends AppCompatActivity {
 
   private void initializeSensor() {
     mSensorManager = SensorController.getInstance();
-    int mSensorPos = getIntent().getIntExtra("SensorPos", -1);
+    int mSensorPos = getIntent().getIntExtra(EXTRA_TAG_SENSOR_POS, -1);
     mSensor = mSensorManager.getSensorList().get(mSensorPos);// TODO: fashion singleton
     assert mSensor != null;
   }
@@ -136,7 +139,7 @@ public class SensorDetailsActivity extends AppCompatActivity {
         }
         SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, mSensorManager)
             .setActivity(this)
-            .setOnRecordingFinishListener(this::resumeViewing)
+            .setOnCancelListener(this::resumeViewing)
             .setSensorSelected(mSensor);
         builder.show();
         break;

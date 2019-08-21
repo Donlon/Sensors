@@ -32,18 +32,14 @@ public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.
   }
 
   private void initView() {
-    mHolder = getHolder();//获取SurfaceHolder对象
-    mHolder.addCallback(this);//注册SurfaceHolder的回调方法
-    setFocusable(true);
-    setFocusableInTouchMode(true);
-    this.setKeepScreenOn(true);
-
+    mHolder = getHolder();
+    mHolder.addCallback(this);
   }
 
   @Override
   public void surfaceCreated(SurfaceHolder holder) {
     mIsDrawing = true;
-    new Thread(this).start();
+//    new Thread(this).start();
   }
 
   @Override
@@ -66,13 +62,14 @@ public class SensorDataSurfaceView extends SurfaceView implements SurfaceHolder.
   private void draw() {
     try {
       mCanvas = mHolder.lockCanvas();
-      // draw sth绘制过程
 
       mCanvas.drawColor(Color.BLUE);
-    } catch (Exception ignored) {
 
+    } catch (Exception ignored) {
     } finally {
-      if (mCanvas != null) mHolder.unlockCanvasAndPost(mCanvas);//保证每次都将绘图的内容提交
+      if (mCanvas != null) {
+        mHolder.unlockCanvasAndPost(mCanvas);
+      }
     }
   }
 }

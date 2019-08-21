@@ -226,9 +226,9 @@ public class RecordingActivity extends AppCompatActivity {
     if (mRecordingManager.isRecording()) {
       recordingStartedSetUi();
     } else {
-      mRecordingManager.setSensorsToRecord(mSensorsToRecord);
-      mRecordingManager.setOnNewFrameListener(mOnNewFrameRunnable);
-      mRecordingManager.init();
+      mRecordingManager.setSensorsToRecord(mSensorsToRecord)
+          .setOnNewFrameListener(mOnNewFrameRunnable)
+          .init();
     }
   }
 

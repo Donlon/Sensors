@@ -22,9 +22,9 @@ public class MainActivity extends AppCompatActivity {
   private SensorController mSensorController;
   private SensorsListAdapter mSensorListAdapter;
 
-  private Switch swUpdate;
+  private Switch updateSwitch;
 
-  private boolean mIsPreviewSwitchOn;
+  private boolean mIsLastViewing;
   private boolean mIsViewing = false;
 
   @Override
@@ -36,16 +36,17 @@ public class MainActivity extends AppCompatActivity {
     mSensorController = SensorController.create(this);
     mSensorListAdapter = new SensorsListAdapter(this, mSensorController.getSensorList());
     mSensorController.setOnSensorChangeListener(mSensorListAdapter);
-    mIsPreviewSwitchOn = StorageUtils.getDefaultViewingState(this);
+
+    mIsLastViewing = StorageUtils.getDefaultViewingState(this);
     initializeUi();
   }
 
   private void initializeUi() {
     setContentView(R.layout.main_activity);
-    Logger.d("Start");
 
-    swUpdate = findViewById(R.id.swUpdate);
-    swUpdate.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
+    updateSwitch = findViewById(R.id.swUpdate);
+    updateSwitch.setChecked(mIsLastViewing);
+    updateSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> onSwitchCheckedChange(isChecked));
 
     FloatingActionButton fabMain = findViewById(R.id.fab_main);
 
@@ -54,24 +55,25 @@ public class MainActivity extends AppCompatActivity {
     LinearLayoutManager layoutManager = new LinearLayoutManager(this);
     layoutManager.setOrientation(RecyclerView.VERTICAL);
     sensorList.setLayoutManager(layoutManager);
-//    sensorList.setOnItemClickListener((parent, view, position, id) -> startSensorDetailsActivity(position));
     sensorList.setAdapter(mSensorListAdapter);
     sensorList.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
     sensorList.setItemAnimator(new DefaultItemAnimator());
 
-    fabMain.setOnClickListener(v -> {
-      if (mIsViewing) {
-        pauseViewing();
-      }
-      SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, mSensorController)
-          .setActivity(this)
-          .setOnRecordingFinishListener(() -> {
-            if (mIsPreviewSwitchOn) {
-              resumeViewing();
-            }
-          });
-      builder.show();
-    });
+    fabMain.setOnClickListener(v -> onFloatBtnClick());
+  }
+
+  private void onFloatBtnClick() {
+    if (mIsViewing) {
+      pauseViewing();
+    }
+    SensorSelectorDialogBuilder builder = new SensorSelectorDialogBuilder(this, mSensorController)
+        .setActivity(this)
+        .setOnCancelListener(() -> {
+          if (mIsLastViewing) {
+            resumeViewing();
+          }
+        });
+    builder.show();
   }
 
   public void onSwitchCheckedChange(boolean isChecked) {
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         resumeViewing();
       }
       StorageUtils.saveDefaultViewingState(this, isChecked);
-      mIsPreviewSwitchOn = isChecked;
+      mIsLastViewing = isChecked;
     }
   }
 
@@ -91,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
       throw new IllegalStateException();
     }
     mIsViewing = true;
-    swUpdate.setChecked(true);
+    updateSwitch.setChecked(true);
     mSensorController.enableAllSensors();
     mSensorController.setOnSensorChangeListener(mSensorListAdapter);
     mSensorListAdapter.startUpdating();
@@ -102,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
       throw new IllegalStateException();
     }
     mIsViewing = false;
-    swUpdate.setChecked(false);
+    updateSwitch.setChecked(false);
     mSensorController.disableAllSensors();
     mSensorController.setOnSensorChangeListener(null);
     mSensorListAdapter.stopUpdating();
@@ -111,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onResume() {
     super.onResume();
-    if (mIsPreviewSwitchOn) {
+    if (mIsLastViewing) {
       resumeViewing();
     }
   }

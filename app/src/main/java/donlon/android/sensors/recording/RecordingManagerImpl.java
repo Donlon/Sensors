@@ -56,9 +56,13 @@ public class RecordingManagerImpl implements RecordingManager {
   }
 
   public void startRecording() {
-    mDataFileWriter = new DataFileWriterImpl(mDataFilePath, mDataBufferMap);
-    if (!mDataFileWriter.init()) {
-      mOnRecordingFailedListener.run(); //TODO: ...
+    mDataFileWriter = new DataFileWriterImpl(mDataFilePath);
+    try {
+      if (!mDataFileWriter.init()) {
+        mOnRecordingFailedListener.run(); //TODO: ...
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
     }
     mSensorController.disableAllSensors();
 
@@ -74,7 +78,7 @@ public class RecordingManagerImpl implements RecordingManager {
   }
 
   private void onSensorChanged(CustomSensor sensor, SensorEvent event) {
-    synchronized (mDataBufferMap) {
+    synchronized (mDataFileWriter.acquireLockObject()) {
       SensorEventsBuffer buffer = mDataBufferMap.get(sensor);
       if (buffer != null) {
         buffer.add(event);
@@ -156,7 +160,8 @@ public class RecordingManagerImpl implements RecordingManager {
     mOnRecordingFailedListener = listener;
   }
 
-  public void setOnNewFrameListener(Runnable onNewFrameListener) {
+  public RecordingManager setOnNewFrameListener(Runnable onNewFrameListener) {
     mOnNewFrameListener = onNewFrameListener;
+    return this;
   }
 }
